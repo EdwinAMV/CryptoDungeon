@@ -1,0 +1,65 @@
+# Entorno y credenciales locales
+.env
+.env.*
+!.env.example
+/auth.json
+
+# Dependencias
+/node_modules
+/vendor
+
+# Recursos generados y servidor de desarrollo
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+
+# Almacenamiento, registros y base de datos local
+*.log
+/storage/*.key
+/storage/pail
+/database/*.sqlite
+/database/*.sqlite-*
+
+# Cachés de pruebas y herramientas de desarrollo
+.phpunit.result.cache
+/.phpunit.cache
+.phpactor.json
+_ide_helper.php
+
+# Configuración de entornos virtuales locales
+Homestead.json
+Homestead.yaml
+
+# Editores e IDE
+/.idea
+/.nova
+/.vscode
+/.zed
+
+# Instrucciones y configuración local de asistentes de IA
+AGENTS.md
+AGENTS.override.md
+CLAUDE.md
+CLAUDE.local.md
+GEMINI.md
+.agents/
+.claude/
+.codex/
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.continue/
+.clinerules
+.roo/
+.aider*
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+.github/agents/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
