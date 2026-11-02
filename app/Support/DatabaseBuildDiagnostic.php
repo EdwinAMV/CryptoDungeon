@@ -2,15 +2,17 @@
 
 namespace App\Support;
 
+use Illuminate\Database\QueryException;
 use PDOException;
 use Throwable;
 
 class DatabaseBuildDiagnostic
 {
-    public static function describe(Throwable $exception): string
+    public static function describe(Throwable $exception, array $connection = []): string
     {
         $state = 'desconocido';
         $messages = '';
+        $driverMessage = '';
 
         for ($current = $exception; $current !== null; $current = $current->getPrevious()) {
             $messages .= ' '.strtolower($current->getMessage());
@@ -19,6 +21,10 @@ class DatabaseBuildDiagnostic
                 $candidate = (string) ($current->errorInfo[0] ?? $current->getCode());
                 if (preg_match('/\A[A-Z0-9]{5}\z/', $candidate)) {
                     $state = $candidate;
+                }
+
+                if (! $current instanceof QueryException) {
+                    $driverMessage = (string) ($current->errorInfo[2] ?? $current->getMessage());
                 }
             }
         }
@@ -32,13 +38,60 @@ class DatabaseBuildDiagnostic
             default => self::connectionHint($messages),
         };
 
-        // Only whitelisted codes and fixed hints are returned. Never interpolate
-        // exception messages, SQL, connection strings, hostnames or passwords.
-        return 'SQLSTATE='.$state.'. '.$hint;
+        $result = 'SQLSTATE='.$state.'. '.$hint;
+
+        // Connection failures need the driver's reason, not Laravel's wrapper
+        // (which contains SQL and bindings). Only expose it when the caller has
+        // supplied the connection values needed for redaction.
+        if (str_starts_with($state, '08') && $connection !== [] && $driverMessage !== '') {
+            $result .= ' Motivo del controlador: '.self::redact($driverMessage, $connection);
+        }
+
+        return $result;
+    }
+
+    private static function redact(string $message, array $connection): string
+    {
+        $sensitive = [];
+        foreach (['url', 'host', 'username', 'password', 'database'] as $key) {
+            foreach ((array) ($connection[$key] ?? []) as $value) {
+                if (is_string($value) && $value !== '') {
+                    $sensitive[] = $value;
+                    $sensitive[] = rawurldecode($value);
+                }
+            }
+        }
+
+        if (is_string($connection['url'] ?? null)) {
+            $parts = parse_url($connection['url']);
+            if (is_array($parts)) {
+                foreach (['user', 'pass', 'host', 'path'] as $key) {
+                    if (isset($parts[$key]) && $parts[$key] !== '') {
+                        $sensitive[] = $parts[$key];
+                        $sensitive[] = rawurldecode($parts[$key]);
+                    }
+                }
+            }
+        }
+
+        $sensitive = array_unique($sensitive);
+        usort($sensitive, fn (string $left, string $right) => strlen($right) <=> strlen($left));
+        $message = str_replace($sensitive, '[oculto]', $message);
+        $message = preg_replace('~(?:postgres(?:ql)?|pgsql)://[^\s]+~i', '[conexión oculta]', $message);
+        $message = preg_replace('/\b(?:password|pgpassword)\s*=\s*(?:\'[^\']*\'|"[^"]*"|[^\s;]+)/i', 'password=[oculto]', $message);
+        $message = preg_replace('/(?ims)^\s*(?:DETAIL|CONTEXT|STATEMENT|QUERY):.*$/', '', $message);
+        $message = preg_replace('/"[^"\r\n]*"|\'[^\'\r\n]*\'/', '[oculto]', $message);
+        $message = preg_replace('/[\x00-\x1F\x7F]+/', ' ', $message);
+
+        return substr(trim($message), 0, 600);
     }
 
     private static function connectionHint(string $message): string
     {
+        if (str_contains($message, 'endpoint id is not specified')) {
+            return 'Neon no recibe el identificador del endpoint: revisa la compatibilidad SNI de libpq.';
+        }
+
         if (str_contains($message, 'password authentication failed') || str_contains($message, 'authentication failed')) {
             return 'Autenticación rechazada: vuelve a copiar la conexión desde Neon Connect.';
         }
@@ -59,7 +112,7 @@ class DatabaseBuildDiagnostic
             return 'Conexión rechazada: revisa que el endpoint de Neon esté activo y que el puerto sea correcto.';
         }
 
-        if (str_contains($message, 'endpoint is disabled') || str_contains($message, 'endpoint is not active')) {
+        if (str_contains($message, 'endpoint is disabled') || str_contains($message, 'endpoint is not active') || str_contains($message, 'endpoint has been disabled')) {
             return 'El endpoint de Neon no está activo: comprueba su estado en la consola.';
         }
 

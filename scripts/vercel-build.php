@@ -66,7 +66,8 @@ try {
 
     $stage = 'conexión';
     fwrite(STDOUT, "[Vercel] Comprobando conexión PostgreSQL...\n");
-    DB::connection()->select('SELECT 1');
+    $databaseConnection = DB::connection();
+    $databaseConnection->select('SELECT 1');
     fwrite(STDOUT, "[Vercel] Conexión PostgreSQL correcta.\n");
 
     $app['events']->listen(MigrationStarted::class, function (MigrationStarted $event) use (&$stage): void {
@@ -90,7 +91,9 @@ try {
 } catch (Throwable $exception) {
     // Do not print database exceptions: they can contain credentials or SQL data.
     if ($exception instanceof PDOException || $exception instanceof QueryException) {
-        fwrite(STDERR, '[Vercel] Fallo en '.($stage ?? 'preparación').': '.DatabaseBuildDiagnostic::describe($exception)."\n");
+        $connectionDetails = ($stage ?? null) === 'conexión' && isset($databaseConnection)
+            ? $databaseConnection->getConfig() : [];
+        fwrite(STDERR, '[Vercel] Fallo en '.($stage ?? 'preparación').': '.DatabaseBuildDiagnostic::describe($exception, $connectionDetails)."\n");
     } elseif ($exception instanceof RuntimeException) {
         fwrite(STDERR, $exception->getMessage()."\n");
     } else {
