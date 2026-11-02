@@ -10,7 +10,7 @@ Está pensada para utilizarse en el aula: una persona crea la sala y organiza la
 2. Los alumnos se unen con un código de acceso de seis cifras y un nombre o alias.
 3. El anfitrión inicia la partida cuando hay al menos dos jugadores conectados en individual o al menos dos equipos, cada uno con un jugador conectado.
 4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
-5. Cada respuesta correcta abre la siguiente habitación y suma 100 puntos al equipo. La partida termina cuando todos han completado el recorrido.
+5. Cada respuesta correcta abre la siguiente habitación y suma hasta 100 puntos al equipo: cada fallo previo en esa habitación resta 10, con un mínimo de 0. La partida termina cuando todos han completado el recorrido.
 
 El plano representa salas de piedra conectadas por pasillos rectos. Cada jugador tiene su propia ficha y puede volver a una sala contigua abierta pulsándola. Al resolver un acertijo, quien responde avanza a la siguiente habitación; sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
 
@@ -23,6 +23,14 @@ La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habit
 El creador puede eliminar la sala y todos sus datos desde su panel, previa confirmación. Los jugadores pueden salir desde el lobby o durante la partida, y disponen de un botón de salida al completar su recorrido. Salir durante la partida conserva los puntos del equipo y el historial de respuestas, pero impide volver a entrar. Los equipos sin participantes activos no bloquean el final de la partida.
 
 El enlace «Descargar respuestas (.txt)» del panel permite descargar de nuevo las respuestas de esa misma mazmorra. Cada descarga comprueba los permisos del creador y no guarda archivos en carpetas públicas. Si el navegador bloquea la descarga automática inicial, se puede utilizar ese enlace.
+
+## Puntuación, intentos y chat
+
+Cada habitación parte de 100 puntos. Al resolverla se conceden `max(0, 100 - 10 × fallos previos)`. En equipos se suman los fallos de todos sus miembros en esa habitación. No se restan puntos de otras habitaciones, y los puntos ya concedidos en partidas anteriores se conservan. Las respuestas repetidas sobre una habitación resuelta no cuentan como nuevos intentos.
+
+El resumen final muestra intentos correctos e incorrectos, el detalle por jugador y habitación y la puntuación obtenida. El anfitrión también ve los intentos y fallos de cada grupo y participante en su panel.
+
+En modo por equipos hay un chat privado en el lobby y durante la partida, disponible hasta salir de la sala. Muestra los últimos 50 mensajes, actualizados cada tres segundos. Cada mensaje admite 500 caracteres y cada participante puede enviar hasta 10 mensajes en 30 segundos. El servidor obtiene el grupo de la sesión del navegador: no se aceptan identificadores de equipo enviados por el cliente. Los mensajes se muestran como texto y se eliminan al borrar la sala. El chat no aparece en partidas individuales ni en el panel del anfitrión.
 
 ## Generación de acertijos
 

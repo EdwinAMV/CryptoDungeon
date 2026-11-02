@@ -51,9 +51,16 @@ class SessionLobby extends Component
     public function render()
     {
         $game = $this->game()->load(['teams' => fn ($query) => $query
-            ->with('participants')
+            ->with(['participants' => fn ($players) => $players->withCount([
+                'attempts as attempt_count',
+                'attempts as incorrect_count' => fn ($attempts) => $attempts->where('is_correct', false),
+            ])])
             ->withSum('progress as score', 'awarded_points')
-            ->withCount(['progress as solved_count' => fn ($progress) => $progress->whereNotNull('solved_at')]),
+            ->withCount([
+                'progress as solved_count' => fn ($progress) => $progress->whereNotNull('solved_at'),
+                'attempts as attempt_count',
+                'attempts as incorrect_count' => fn ($attempts) => $attempts->where('is_correct', false),
+            ]),
         ])->loadCount('rooms');
 
         return view('livewire.host.session-lobby', [

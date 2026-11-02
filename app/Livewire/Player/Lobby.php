@@ -7,6 +7,7 @@ use App\Models\Participant;
 use App\Services\DungeonMapService;
 use App\Services\GameService;
 use App\Services\ParticipantPosition;
+use App\Services\ScoreCalculator;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -75,7 +76,10 @@ class Lobby extends Component
         $game = $participant->team->gameSession;
 
         if ($game->status !== GameStatus::Lobby) {
-            $progress = $participant->team->progress()->with('room')->orderBy('id')->get();
+            $progress = $participant->team->progress()->with('room')->withCount([
+                'attempts as attempt_count',
+                'attempts as incorrect_count' => fn ($query) => $query->where('is_correct', false),
+            ])->orderBy('id')->get();
             $location = app(ParticipantPosition::class)->ensure($participant, $progress);
             $selected = $progress->firstWhere('room_id', $location);
             $current = $selected && ! $selected->solved_at ? $selected : null;
@@ -104,8 +108,25 @@ class Lobby extends Component
                 'nextPosition' => $next?->room->position,
                 'solvedCount' => $progress->whereNotNull('solved_at')->count(),
                 'score' => $progress->sum('awarded_points'),
+                'attemptCount' => $progress->sum('attempt_count'),
+                'incorrectCount' => $progress->sum('incorrect_count'),
+                'roomIncorrectCount' => $current?->incorrect_count ?? 0,
+                'availablePoints' => app(ScoreCalculator::class)->solvedRoom($current?->incorrect_count ?? 0),
+                'roomResults' => $progress->map(fn ($step) => [
+                    'position' => $step->room->position, 'attempts' => $step->attempt_count,
+                    'incorrect' => $step->incorrect_count, 'points' => $step->awarded_points,
+                    'solved' => $step->solved_at !== null,
+                ])->all(),
+                'playerResults' => $participant->team->participants()->withCount([
+                    'attempts as attempt_count',
+                    'attempts as incorrect_count' => fn ($query) => $query->where('is_correct', false),
+                ])->orderBy('id')->get(),
                 'standings' => $game->teams()->withSum('progress as score', 'awarded_points')
-                    ->withCount(['progress as solved_count' => fn ($query) => $query->whereNotNull('solved_at')])
+                    ->withCount([
+                        'progress as solved_count' => fn ($query) => $query->whereNotNull('solved_at'),
+                        'attempts as attempt_count',
+                        'attempts as incorrect_count' => fn ($query) => $query->where('is_correct', false),
+                    ])
                     ->orderByDesc('score')->orderBy('id')->get(),
             ]);
         }

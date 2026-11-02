@@ -62,6 +62,8 @@ class RoomMigrationTest extends TestCase
             (require database_path('migrations/2026_11_02_000004_add_participant_departures.php'))->up();
             $this->assertTrue(Schema::hasColumn('participants', 'left_at'));
             $this->assertNull(DB::table('participants')->where('team_id', $team)->value('left_at'));
+            (require database_path('migrations/2026_11_02_000005_create_team_chat_messages.php'))->up();
+            $this->assertTrue(Schema::hasTable('team_chat_messages'));
             $this->assertSame('Ana', DB::table('participants')->where('team_id', $team)->value('display_name'));
             $this->assertNull(DB::table('participants')->where('team_id', $team)->value('current_room_id'));
             $this->assertSame(3, DB::table('game_sessions')->count());

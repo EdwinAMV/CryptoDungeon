@@ -1,4 +1,4 @@
-<section wire:poll.3s class="mx-auto max-w-xl">
+<section wire:poll.3s class="mx-auto max-w-xl space-y-6">
     <div class="panel text-center">
         <p class="text-sm font-semibold uppercase tracking-widest text-amber-300">Ya estás dentro</p>
         <h1 class="mt-4 text-3xl font-bold">Hola, {{ $participant->display_name }}</h1>
@@ -22,4 +22,7 @@
             <button class="text-sm text-slate-400 underline hover:text-white">Salir como participante</button>
         </form>
     </div>
+    @if ($game->mode === 'teams')
+        <livewire:player.team-chat :key="'team-chat-'.$participant->team_id" />
+    @endif
 </section>

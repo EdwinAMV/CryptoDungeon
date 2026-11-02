@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Participant extends Model
 {
@@ -22,5 +23,10 @@ class Participant extends Model
     public function currentRoom(): BelongsTo
     {
         return $this->belongsTo(Room::class, 'current_room_id');
+    }
+
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(AnswerAttempt::class);
     }
 }

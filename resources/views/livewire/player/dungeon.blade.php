@@ -8,6 +8,7 @@
     </header>
 
     <x-leave-room :completed="$participant->team->finished_at !== null || $game->status === \App\Enums\GameStatus::Finished" />
+    <p class="text-sm text-slate-400">{{ $attemptCount }} intentos · {{ $incorrectCount }} respuestas incorrectas</p>
     @error('movement')<p role="alert" class="rounded-xl bg-red-950 p-4 text-red-200">{{ $message }}</p>@enderror
     <x-dungeon-map :map="$map" title="Tu expedición" />
 
@@ -18,6 +19,7 @@
                     <p class="text-sm text-amber-300">Habitación {{ $puzzle['position'] }}</p>
                     <h2 class="mt-2 text-2xl font-bold">{{ $puzzle['label'] }}</h2>
                     <p class="mt-4 text-slate-300">Descifra el mensaje completo para abrir la siguiente habitación.</p>
+                    <p class="mt-3 text-sm text-amber-200">Esta habitación: {{ $roomIncorrectCount }} fallos · {{ $availablePoints }} puntos disponibles. Cada fallo resta 10 de los 100 puntos, hasta un mínimo de 0.{{ $game->mode === 'teams' ? ' Los fallos de todo el equipo se acumulan.' : '' }}</p>
                     <p class="my-6 break-words rounded-xl border border-slate-700 bg-slate-950 p-5 font-mono text-lg leading-relaxed tracking-wider">{{ $puzzle['ciphertext'] }}</p>
                     @if ($puzzle['cipher'] === 'caesar')
                         <p class="text-sm text-slate-300">Cada letra original avanzó {{ $puzzle['parameters']['shift'] }} posiciones en el alfabeto. Para descifrar, retrocede ese desplazamiento.</p>
@@ -47,13 +49,43 @@
             @endif
     </section>
 
+    @if ($participant->team->finished_at || $game->status === \App\Enums\GameStatus::Finished)
+        <section class="panel space-y-5">
+            <h2 class="text-2xl font-bold">Resumen de intentos</h2>
+            <p class="text-slate-300">{{ $attemptCount }} intentos en total: {{ $incorrectCount }} incorrectos y {{ $attemptCount - $incorrectCount }} correctos · {{ $score }} puntos.</p>
+            <div>
+                <h3 class="font-bold text-amber-200">Por jugador</h3>
+                <ul class="mt-3 space-y-2 text-sm">
+                    @foreach ($playerResults as $result)
+                        <li wire:key="player-result-{{ $result->id }}" class="flex flex-wrap justify-between gap-2"><span>{{ $result->display_name }}{{ $result->left_at ? ' · Ha salido' : '' }}</span><span>{{ $result->attempt_count }} intentos · {{ $result->incorrect_count }} fallos</span></li>
+                    @endforeach
+                </ul>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <caption class="mb-3 text-left font-bold text-amber-200">Por habitación</caption>
+                    <thead class="text-slate-400"><tr><th scope="col" class="py-2 pr-4">Habitación</th><th scope="col" class="pr-4">Intentos</th><th scope="col" class="pr-4">Fallos</th><th scope="col">Puntos</th></tr></thead>
+                    <tbody>
+                        @foreach ($roomResults as $result)
+                            <tr wire:key="room-result-{{ $result['position'] }}" class="border-t border-slate-800"><th scope="row" class="py-3 pr-4 font-normal">{{ $result['position'] }}{{ $result['solved'] ? '' : ' · Pendiente' }}</th><td class="pr-4">{{ $result['attempts'] }}</td><td class="pr-4">{{ $result['incorrect'] }}</td><td>{{ $result['points'] }}</td></tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    @endif
+
+    @if ($game->mode === 'teams')
+        <livewire:player.team-chat :key="'team-chat-'.$participant->team_id" />
+    @endif
+
     <section class="panel">
         <h2 class="mb-4 text-xl font-bold">Progreso de los equipos</h2>
         <ul class="space-y-3">
             @foreach ($standings as $team)
                 <li wire:key="standing-{{ $team->id }}" class="flex flex-wrap justify-between gap-2 border-b border-slate-800 pb-3">
                     <span>{{ $team->name }}</span>
-                    <span class="text-slate-300">{{ $team->solved_count }} / {{ count($tiles) }} · {{ $team->score ?? 0 }} puntos</span>
+                    <span class="text-slate-300">{{ $team->solved_count }} / {{ count($tiles) }} · {{ $team->score ?? 0 }} puntos · {{ $team->attempt_count }} intentos · {{ $team->incorrect_count }} fallos</span>
                 </li>
             @endforeach
         </ul>

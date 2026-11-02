@@ -172,7 +172,11 @@ class GameService
                 return 'incorrect';
             }
 
-            $progress->update(['solved_at' => now(), 'awarded_points' => app(ScoreCalculator::class)->solvedRoom()]);
+            $incorrectAttempts = $progress->attempts()->where('is_correct', false)->count();
+            $progress->update([
+                'solved_at' => now(),
+                'awarded_points' => app(ScoreCalculator::class)->solvedRoom($incorrectAttempts),
+            ]);
             $next = $game->rooms()->where('position', '>', $progress->room->position)->first();
             if ($next) {
                 $team->progress()->where('room_id', $next->id)->update(['unlocked_at' => now()]);

@@ -4,9 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeamRoomProgress extends Model
 {
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(AnswerAttempt::class, 'team_room_progress_id');
+    }
+
     protected $table = 'team_room_progress';
 
     protected $fillable = ['room_id', 'unlocked_at', 'solved_at', 'awarded_points'];
