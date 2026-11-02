@@ -11,7 +11,7 @@
         @if ($game->mode === 'teams')
             <ul class="mt-4 flex flex-wrap justify-center gap-2" aria-label="Miembros de tu equipo">
                 @foreach ($teammates as $teammate)
-                    <li wire:key="teammate-{{ $teammate->id }}" class="rounded-full bg-slate-800 px-4 py-2 text-sm">{{ $teammate->display_name }}{{ $teammate->id === $participant->id ? ' (tú)' : '' }}</li>
+                    <li wire:key="teammate-{{ $teammate->id }}" class="inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-sm"><span class="h-2.5 w-2.5 rounded-full" style="background: {{ $teammate->displayColor() }}" aria-hidden="true"></span>{{ $teammate->display_name }}{{ $teammate->id === $participant->id ? ' (tú)' : '' }}</li>
                 @endforeach
             </ul>
         @else

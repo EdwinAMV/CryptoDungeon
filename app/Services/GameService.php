@@ -248,10 +248,15 @@ class GameService
                     }
                 }
 
-                return $team->participants()->create([
+                $participant = $team->participants()->make([
                     'display_name' => $data['displayName'],
                     'last_seen_at' => now(),
                 ]);
+                $participant->forceFill([
+                    'color_hue' => app(ParticipantColor::class)->choose($team->participants()->whereNotNull('color_hue')->pluck('color_hue')->all()),
+                ])->save();
+
+                return $participant;
             }, attempts: 3);
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['displayName' => 'Ese nombre ya está en uso. Elige otro.']);

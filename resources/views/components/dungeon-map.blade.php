@@ -30,7 +30,7 @@
                     <span class="dungeon-room-label">{{ $room['position'] }} · {{ $room['name'] }}</span>
                     <div class="dungeon-tokens" aria-label="Jugadores en {{ $room['name'] }}">
                         @foreach (array_slice($room['players'], 0, 8) as $player)
-                            <span wire:key="map-player-{{ $player['id'] }}" @class(['player-token', 'is-away' => ! $player['online'], 'is-self' => $player['self'] ?? false]) style="--token-color: {{ $player['color'] }}" title="{{ $player['name'] }} · {{ $player['team_name'] }}{{ $player['online'] ? '' : ' · Sin señal' }}" tabindex="0" aria-label="{{ $player['name'] }} · {{ $player['team_name'] }}{{ ($player['self'] ?? false) ? ' · Tú' : '' }}{{ $player['online'] ? '' : ' · Sin señal' }}">{{ mb_strtoupper(mb_substr($player['name'], 0, 1)) }}</span>
+                            <span wire:key="map-player-{{ $player['id'] }}" @class(['player-token', 'is-away' => ! $player['online'], 'is-self' => $player['self'] ?? false]) style="--token-color: {{ $player['color'] }}; --token-team-color: {{ $player['team_color'] ?? '#f8f1dc' }}" title="{{ $player['name'] }} · {{ $player['team_name'] }}{{ $player['online'] ? '' : ' · Sin señal' }}" tabindex="0" aria-label="{{ $player['name'] }} · {{ $player['team_name'] }}{{ ($player['self'] ?? false) ? ' · Tú' : '' }}{{ $player['online'] ? '' : ' · Sin señal' }}">{{ mb_strtoupper(mb_substr($player['name'], 0, 1)) }}</span>
                         @endforeach
                         @if (count($room['players']) > 8)
                             <span class="player-token token-count" title="{{ implode(', ', array_column(array_slice($room['players'], 8), 'name')) }}">+{{ count($room['players']) - 8 }}</span>

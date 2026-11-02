@@ -56,7 +56,7 @@ class DungeonMapService
     {
         return [
             'id' => $player->id, 'name' => $player->display_name, 'team_name' => $teamName,
-            'room_id' => $roomId, 'color' => $color, 'self' => $self,
+            'room_id' => $roomId, 'color' => $player->displayColor(), 'team_color' => $color, 'self' => $self,
             'online' => (bool) $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))),
         ];
     }

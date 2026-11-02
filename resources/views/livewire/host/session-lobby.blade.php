@@ -57,7 +57,7 @@
                         <ul class="mt-4 space-y-2 text-sm">
                             @forelse ($team->participants as $player)
                                 <li wire:key="participant-{{ $player->id }}" class="flex items-center justify-between gap-2">
-                                    <span class="break-words">{{ $player->display_name }}@if ($game->status !== \App\Enums\GameStatus::Lobby)<span class="block text-xs text-slate-400">{{ $player->attempt_count }} intentos · {{ $player->incorrect_count }} fallos</span>@endif</span>
+                                    <span class="break-words"><span class="mr-1 inline-block h-2.5 w-2.5 rounded-full" style="background: {{ $player->displayColor() }}" aria-hidden="true"></span>{{ $player->display_name }}@if ($game->status !== \App\Enums\GameStatus::Lobby)<span class="block text-xs text-slate-400">{{ $player->attempt_count }} intentos · {{ $player->incorrect_count }} fallos</span>@endif</span>
                                     <span class="text-xs {{ ! $player->left_at && $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'text-emerald-400' : 'text-slate-500' }}">{{ $player->left_at ? 'Ha salido' : ($player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'Conectado' : 'Sin señal') }}</span>
                                 </li>
                             @empty

@@ -19,7 +19,7 @@
                     <p class="text-sm text-amber-300">Habitación {{ $puzzle['position'] }}</p>
                     <h2 class="mt-2 text-2xl font-bold">{{ $puzzle['label'] }}</h2>
                     <p class="mt-4 text-slate-300">Descifra el mensaje completo para abrir la siguiente habitación.</p>
-                    <p class="mt-3 text-sm text-amber-200">Esta habitación: {{ $roomIncorrectCount }} fallos · {{ $availablePoints }} puntos disponibles. Cada fallo resta 10 de los 100 puntos, hasta un mínimo de 0.{{ $game->mode === 'teams' ? ' Los fallos de todo el equipo se acumulan.' : '' }}</p>
+                    <p class="mt-3 text-sm text-amber-200">Esta habitación: {{ $roomIncorrectCount }} fallos · {{ $availablePoints }} puntos disponibles. Cada fallo resta 10 de los 100 puntos; la puntuación puede ser negativa.{{ $game->mode === 'teams' ? ' Los fallos de todo el equipo se acumulan.' : '' }}</p>
                     <p class="my-6 break-words rounded-xl border border-slate-700 bg-slate-950 p-5 font-mono text-lg leading-relaxed tracking-wider">{{ $puzzle['ciphertext'] }}</p>
                     @if ($puzzle['cipher'] === 'caesar')
                         <p class="text-sm text-slate-300">Cada letra original avanzó {{ $puzzle['parameters']['shift'] }} posiciones en el alfabeto. Para descifrar, retrocede ese desplazamiento.</p>

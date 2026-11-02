@@ -64,6 +64,16 @@ class RoomMigrationTest extends TestCase
             $this->assertNull(DB::table('participants')->where('team_id', $team)->value('left_at'));
             (require database_path('migrations/2026_11_02_000005_create_team_chat_messages.php'))->up();
             $this->assertTrue(Schema::hasTable('team_chat_messages'));
+            $room = DB::table('rooms')->insertGetId([
+                'game_session_id' => $game, 'position' => 1, 'grid_x' => 0, 'grid_y' => 0,
+                'cipher_type' => 'caesar', 'ciphertext' => 'XYZ', 'public_parameters' => '{}', 'solution' => 'legacy-encrypted-value',
+            ]);
+            $progress = DB::table('team_room_progress')->insertGetId(['team_id' => $team, 'room_id' => $room, 'awarded_points' => 100]);
+            (require database_path('migrations/2026_11_02_000006_add_player_colors_and_signed_scores.php'))->up();
+            $this->assertNotNull(DB::table('participants')->where('team_id', $team)->value('color_hue'));
+            $this->assertSame(100, DB::table('team_room_progress')->where('id', $progress)->value('awarded_points'));
+            DB::table('team_room_progress')->where('id', $progress)->update(['awarded_points' => -20]);
+            $this->assertSame(-20, DB::table('team_room_progress')->where('id', $progress)->value('awarded_points'));
             $this->assertSame('Ana', DB::table('participants')->where('team_id', $team)->value('display_name'));
             $this->assertNull(DB::table('participants')->where('team_id', $team)->value('current_room_id'));
             $this->assertSame(3, DB::table('game_sessions')->count());

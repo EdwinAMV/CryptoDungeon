@@ -12,7 +12,14 @@ class Participant extends Model
 
     protected function casts(): array
     {
-        return ['last_seen_at' => 'immutable_datetime', 'left_at' => 'immutable_datetime'];
+        return ['last_seen_at' => 'immutable_datetime', 'left_at' => 'immutable_datetime', 'color_hue' => 'integer'];
+    }
+
+    public function displayColor(): string
+    {
+        $hue = $this->color_hue ?? (($this->id * 137) % 360);
+
+        return 'hsl('.$hue.' 70% 72%)';
     }
 
     public function team(): BelongsTo

@@ -10,11 +10,11 @@ Está pensada para utilizarse en el aula: una persona crea la sala y organiza la
 2. Los alumnos se unen con un código de acceso de seis cifras y un nombre o alias.
 3. El anfitrión inicia la partida cuando hay al menos dos jugadores conectados en individual o al menos dos equipos, cada uno con un jugador conectado.
 4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
-5. Cada respuesta correcta abre la siguiente habitación y suma hasta 100 puntos al equipo: cada fallo previo en esa habitación resta 10, con un mínimo de 0. La partida termina cuando todos han completado el recorrido.
+5. Cada respuesta correcta abre la siguiente habitación y suma hasta 100 puntos al equipo: cada fallo previo en esa habitación resta 10, sin límite inferior. La partida termina cuando todos han completado el recorrido.
 
 El plano representa salas de piedra conectadas por pasillos rectos. Cada jugador tiene su propia ficha y puede volver a una sala contigua abierta pulsándola. Al resolver un acertijo, quien responde avanza a la siguiente habitación; sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
 
-El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Los colores identifican los grupos y las fichas atenuadas indican jugadores sin señal reciente.
+El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Cada jugador conserva un color propio, asignado al azar y distinto de los de sus compañeros; el borde de la ficha identifica el grupo. Las fichas atenuadas indican jugadores sin señal reciente.
 
 Solo el anfitrión dispone del botón «Activar ambiente», que reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música es opcional y se inicia al pulsar el botón. Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
 
@@ -26,11 +26,11 @@ El enlace «Descargar respuestas (.txt)» del panel permite descargar de nuevo l
 
 ## Puntuación, intentos y chat
 
-Cada habitación parte de 100 puntos. Al resolverla se conceden `max(0, 100 - 10 × fallos previos)`. En equipos se suman los fallos de todos sus miembros en esa habitación. No se restan puntos de otras habitaciones, y los puntos ya concedidos en partidas anteriores se conservan. Las respuestas repetidas sobre una habitación resuelta no cuentan como nuevos intentos.
+Cada habitación parte de 100 puntos. Al resolverla se conceden `100 - 10 × fallos previos`, que pueden ser negativos; por ejemplo, 12 fallos dejan la habitación en −20 puntos. En equipos se suman los fallos de todos sus miembros en esa habitación. No se restan puntos de otras habitaciones, y los puntos ya concedidos en partidas anteriores se conservan. Las respuestas repetidas sobre una habitación resuelta no cuentan como nuevos intentos.
 
 El resumen final muestra intentos correctos e incorrectos, el detalle por jugador y habitación y la puntuación obtenida. El anfitrión también ve los intentos y fallos de cada grupo y participante en su panel.
 
-En modo por equipos hay un chat privado en el lobby y durante la partida, disponible hasta salir de la sala. Muestra los últimos 50 mensajes, actualizados cada tres segundos. Cada mensaje admite 500 caracteres y cada participante puede enviar hasta 10 mensajes en 30 segundos. El servidor obtiene el grupo de la sesión del navegador: no se aceptan identificadores de equipo enviados por el cliente. Los mensajes se muestran como texto y se eliminan al borrar la sala. El chat no aparece en partidas individuales ni en el panel del anfitrión.
+En modo por equipos hay un chat privado en el lobby y durante la partida, disponible hasta salir de la sala. Se abre desde el botón flotante de la esquina inferior derecha, se puede ocultar sin perder el borrador y se cierra también con Escape. Cada autor utiliza su mismo color personal en el chat y el mapa. Muestra los últimos 50 mensajes, actualizados cada tres segundos. Cada mensaje admite 500 caracteres y cada participante puede enviar hasta 10 mensajes en 30 segundos. El servidor obtiene el grupo de la sesión del navegador: no se aceptan identificadores de equipo enviados por el cliente. Los mensajes se muestran como texto y se eliminan al borrar la sala. El chat no aparece en partidas individuales ni en el panel del anfitrión.
 
 ## Generación de acertijos
 

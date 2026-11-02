@@ -85,6 +85,8 @@ La salida de una partida se registra en `participants.left_at`, un campo nullabl
 
 El chat por equipos utiliza la tabla `team_chat_messages`, eliminada en cascada junto con su sala. Su migración no cambia las tablas ni el progreso existentes. El chat usa polling, sin WebSockets, colas ni variables nuevas. Las penalizaciones utilizan los registros existentes de `answer_attempts`: solo afectan a los puntos de habitaciones resueltas a partir del cambio, sin recalcular premios ya concedidos.
 
+La migración de colores y puntuaciones añade `participants.color_hue`, asigna un color estable a los jugadores existentes y convierte `awarded_points` en un entero con signo para admitir premios negativos también en MariaDB. Conserva los importes y las relaciones existentes. Al revertir esta migración se mantiene la columna de puntuación con signo para no alterar premios negativos ya guardados.
+
 ## Preview y Production
 
 Usa una rama/base de Neon distinta para las previews, con sus propias variables `DB_URL` y `APP_KEY`. Su URL se detecta automáticamente. **Cada build configurado ejecuta migraciones contra su conexión**: una preview no debe apuntar a la base de producción.

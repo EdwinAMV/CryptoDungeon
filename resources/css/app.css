@@ -95,9 +95,18 @@
 .prop-crystals { width: 20%; height: 26%; background: linear-gradient(135deg, #c5dce7 0 25%, #6488a5 25% 55%, #385a7b 55%); clip-path: polygon(50% 0, 100% 55%, 60% 100%, 10% 65%); filter: drop-shadow(0 0 5px #7da8d8); }
 .prop-table { width: 45%; height: 30%; border: 3px solid #49392c; background: repeating-linear-gradient(0deg, #826545 0 5px, #725738 5px 6px); box-shadow: 0 3px 0 #30251d; }
 .dungeon-tokens { position: absolute; inset: 20% 5% 8%; z-index: 5; display: flex; align-content: center; justify-content: center; flex-wrap: wrap; gap: calc(.2 * var(--map-unit)); pointer-events: none; }
-.player-token { --token-color: #b5d6c2; width: calc(1.1 * var(--map-unit)); height: calc(1.1 * var(--map-unit)); display: inline-flex; flex: 0 0 auto; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid #f8f1dc; background: var(--token-color); color: #17222c; font-size: calc(.6 * var(--map-unit)); font-weight: 900; box-shadow: 0 2px 5px #000a; pointer-events: auto; }
+.player-token { --token-color: #b5d6c2; width: calc(1.1 * var(--map-unit)); height: calc(1.1 * var(--map-unit)); display: inline-flex; flex: 0 0 auto; justify-content: center; align-items: center; border-radius: 50%; border: 2px solid var(--token-team-color, #f8f1dc); background: var(--token-color); color: #17222c; font-size: calc(.6 * var(--map-unit)); font-weight: 900; box-shadow: 0 2px 5px #000a; pointer-events: auto; }
 .player-token.is-self { outline: 2px solid #ffd678; outline-offset: 2px; }
 .player-token.is-away { opacity: .45; border-style: dashed; }
 .token-count { background: #242d36; color: #ffe4ad; font-size: 8px; }
 @keyframes torch-glow { from { opacity: .7; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .dungeon-torch { animation: none; } .dungeon-room { transition: none; } }
+
+
+.team-chat-widget { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 50; }
+.team-chat-toggle { display: inline-flex; align-items: center; gap: .65rem; min-height: 3.5rem; padding: .9rem 1.2rem; border: 1px solid #fde68a; border-radius: 999px; background: #fcd34d; color: #0f172a; font-size: .875rem; font-weight: 800; box-shadow: 0 6px 28px #0007; }
+.team-chat-toggle:hover { background: #fde68a; }
+.team-chat-toggle:focus-visible { outline: 2px solid #fef3c7; outline-offset: 4px; }
+.team-chat-panel { position: absolute; right: 0; bottom: calc(100% + .75rem); display: flex; flex-direction: column; width: min(24rem, calc(100vw - 2rem)); height: min(34rem, calc(100dvh - 7rem - env(safe-area-inset-bottom))); overflow: hidden; border: 1px solid #475569; border-radius: 1.25rem; background: #0f172a; box-shadow: 0 12px 60px #000a; }
+.chat-player-avatar { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--player-color); color: #0f172a; font-size: .75rem; font-weight: 800; }
+@media (max-height: 500px) { .team-chat-panel { height: calc(100dvh - 6rem); } .team-chat-panel header { padding-top: .5rem; padding-bottom: .5rem; } }

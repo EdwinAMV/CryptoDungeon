@@ -54,7 +54,7 @@ class ScoringAndChatTest extends TestCase
         $this->assertSame(200, $rival->team->progress()->sum('awarded_points'));
     }
 
-    public function test_many_errors_never_create_negative_points_and_results_include_attempts(): void
+    public function test_many_errors_create_negative_points_and_results_include_attempts(): void
     {
         [$game, $player] = $this->game('individual');
         $games = app(GameService::class);
@@ -64,14 +64,18 @@ class ScoringAndChatTest extends TestCase
         for ($index = 0; $index < 12; $index++) {
             $games->submitAnswer($player, $first->id, 'incorrecto');
         }
-        Livewire::test(Lobby::class)->assertViewHas('availablePoints', 0)->assertViewHas('roomIncorrectCount', 12);
+        Livewire::test(Lobby::class)->assertViewHas('availablePoints', -20)->assertViewHas('roomIncorrectCount', 12);
         foreach ($game->rooms as $room) {
             $games->submitAnswer($player, $room->id, $room->solution);
+            if ($room->position === 1) {
+                $this->assertSame(-20, $player->team->progress()->sum('awarded_points'));
+                Livewire::test(Lobby::class)->assertViewHas('score', -20);
+            }
         }
-        $this->assertSame(400, $player->team->progress()->sum('awarded_points'));
+        $this->assertSame(380, $player->team->progress()->sum('awarded_points'));
         Livewire::test(Lobby::class)->assertSee('Resumen de intentos')->assertSee('Por jugador')
             ->assertViewHas('attemptCount', 17)->assertViewHas('incorrectCount', 12)
-            ->assertViewHas('roomResults', fn ($rows) => $rows[0]['attempts'] === 13 && $rows[0]['points'] === 0);
+            ->assertViewHas('roomResults', fn ($rows) => $rows[0]['attempts'] === 13 && $rows[0]['points'] === -20);
         Livewire::test(SessionLobby::class, ['gameSession' => $game])->assertViewHas('game', function ($game) use ($player) {
             $team = $game->teams->find($player->team_id);
 

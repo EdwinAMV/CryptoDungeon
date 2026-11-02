@@ -25,7 +25,7 @@ class TeamChatService
         $player = $this->participant();
         abort_unless($player, 403);
 
-        return TeamChatMessage::where('team_id', $player->team_id)->with('participant:id,display_name')
+        return TeamChatMessage::where('team_id', $player->team_id)->with('participant:id,display_name,color_hue')
             ->latest('id')->limit(50)->get()->reverse()->values();
     }
 
