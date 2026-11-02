@@ -96,6 +96,14 @@ Si todavía no tienes una base para previews, configura solo Production. Los bui
 
 El control de una sala sigue asociado a la sesión del navegador del creador. Neon permite compartir esa sesión entre instancias de Vercel.
 
+### Compatibilidad SNI del runtime PHP
+
+El runtime comunitario puede utilizar una biblioteca libpq sin soporte SNI. En Vercel se utiliza un conector PostgreSQL que extrae el endpoint del host de Neon y lo envía explícitamente mediante `options='endpoint=ep-…'`, siguiendo la alternativa documentada por Neon. Para conexiones pooled, elimina `-pooler` únicamente del identificador del endpoint; conserva el host pooled.
+
+No necesitas modificar `DB_URL` ni añadir otra variable. Se mantienen SSL y la contraseña original. El conector se registra solo en Vercel y conserva el comportamiento estándar para hosts PostgreSQL ajenos a Neon. Herd y SQLite no utilizan esta adaptación.
+
+Referencia: https://neon.com/docs/connect/connection-errors#the-endpoint-id-is-not-specified
+
 ## Si falla la preparación de la base
 
 El build comprueba primero la conexión con `SELECT 1` y después ejecuta las migraciones. Los logs indican la etapa y, en caso de error, un SQLSTATE y una orientación. Los fallos de conexión incluyen además el motivo del controlador PostgreSQL, ocultando los datos de conexión, contraseñas y detalles de consultas. Si falla una migración, se indica su archivo.

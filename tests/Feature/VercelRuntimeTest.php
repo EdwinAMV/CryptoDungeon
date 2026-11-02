@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Database\NeonPostgresConnector;
 use App\Livewire\Host\SessionCreate;
 use App\Livewire\Host\SessionLobby;
 use App\Models\GameSession;
+use Illuminate\Database\Connectors\ConnectionFactory;
+use Illuminate\Database\Connectors\SQLiteConnector;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +40,14 @@ class VercelRuntimeTest extends TestCase
         $this->assertSame($temporaryPath.'/bootstrap/services.php', app()->getCachedServicesPath());
         $this->get(route('rooms.create'))->assertOk()->assertSee('Crear lobby');
         $this->assertDirectoryExists(config('view.compiled'));
+    }
+
+    public function test_vercel_uses_the_neon_connector_only_for_postgres(): void
+    {
+        $factory = app(ConnectionFactory::class);
+
+        $this->assertInstanceOf(NeonPostgresConnector::class, $factory->createConnector(['driver' => 'pgsql']));
+        $this->assertInstanceOf(SQLiteConnector::class, $factory->createConnector(['driver' => 'sqlite']));
     }
 
     public function test_room_creation_and_group_management_work_with_the_vercel_bootstrap(): void
