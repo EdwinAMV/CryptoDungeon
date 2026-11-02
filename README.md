@@ -1,93 +1,200 @@
 # CryptoDungeon
 
-CryptoDungeon es una aplicación web educativa que convierte el aprendizaje de la criptografía en un escape room. Los alumnos exploran una mazmorra 2D y resuelven mensajes cifrados para desbloquear habitaciones y avanzar hasta la salida.
+CryptoDungeon es una aplicación web educativa que convierte el aprendizaje de la criptografía en un escape room. Los jugadores exploran una mazmorra 2D, descifran mensajes y desbloquean habitaciones hasta alcanzar la **Salida**.
 
-Está pensada para utilizarse en el aula: una persona crea la sala y organiza la partida, y los demás participan individualmente o por equipos. Todos acceden desde el navegador, sin registro ni inicio de sesión.
+Está pensada para el aula: una persona crea y organiza la sala, y los demás participan individualmente o por equipos desde el navegador. No requiere cuentas ni inicio de sesión.
 
 ## Cómo se juega
 
-1. El anfitrión crea una sala y elige la dificultad: fácil (5 acertijos), normal (10) o difícil (15). Se genera la mazmorra y se descarga un TXT con las respuestas, accesible solo al creador. En modo por equipos, crea los grupos.
-2. Los alumnos se unen con un código de acceso de seis cifras y un nombre o alias.
-3. El anfitrión inicia la partida cuando hay al menos dos jugadores conectados en individual o al menos dos equipos, cada uno con un jugador conectado.
-4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
-5. Cada respuesta correcta abre la siguiente habitación y suma hasta 100 puntos al equipo: cada fallo previo en esa habitación resta 10, sin límite inferior. La partida termina cuando todos han completado el recorrido.
+1. El anfitrión crea una sala, selecciona el modo y elige la cantidad de acertijos mediante la dificultad.
+2. Se genera la mazmorra y se solicita la descarga de un TXT con sus respuestas, disponible únicamente para el creador. En modo por equipos, el anfitrión crea los grupos.
+3. Los jugadores entran con el código de seis cifras y un nombre o alias. Si juegan por equipos, seleccionan su grupo.
+4. El anfitrión inicia la partida cuando hay al menos **dos jugadores conectados** en individual, o **dos equipos como mínimo, cada uno con al menos un jugador conectado**.
+5. Cada jugador o equipo resuelve los mensajes para abrir la siguiente habitación, acumular puntos y completar el recorrido.
 
-El plano representa salas de piedra conectadas por pasillos rectos. La última habitación siempre se llama «Salida», también en partidas existentes, y conserva su acertijo final. Cada jugador tiene su propia ficha y puede volver a una sala contigua abierta pulsándola. Al resolver un acertijo, quien responde avanza a la siguiente habitación; sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
+| Dificultad | Acertijos |
+| --- | ---: |
+| Fácil | 5 |
+| Normal | 10 |
+| Difícil | 15 |
 
-El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Cada jugador conserva un color propio, asignado al azar y distinto de los de sus compañeros; el borde de la ficha identifica el grupo. Las fichas atenuadas indican jugadores sin señal reciente.
+La dificultad cambia la cantidad de acertijos, no los algoritmos utilizados. **No hay temporizador.** Todos los recorridos incluyen César, Sustitución Simple y Vigenère. La sala admite hasta 100 participantes y, en modo por equipos, hasta 30 grupos.
 
-Solo el anfitrión dispone del botón «Activar ambiente», que reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música intenta iniciarse automáticamente en la pantalla del anfitrión y mantiene los controles de pausa y volumen. Si el navegador exige interacción para reproducir sonido, vuelve a intentarlo con el primer clic o pulsación de tecla en la página, o mediante «Activar ambiente». Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
+El progreso es independiente entre equipos. La partida termina cuando los equipos que todavía tienen participantes han completado su recorrido; los equipos que se quedan vacíos no bloquean el final.
 
-La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habitaciones conectadas, según la dificultad. Todos incluyen **Cifrado César, Cifrado de Sustitución Simple y Cifrado de Vigenère**, con frases y claves variables entre partidas.
+## Mapa y seguimiento
 
-El creador puede eliminar la sala y todos sus datos desde su panel, previa confirmación. Los jugadores pueden salir desde el lobby o durante la partida, y disponen de un botón de salida al completar su recorrido. Salir durante la partida conserva los puntos del equipo y el historial de respuestas, pero impide volver a entrar. Los equipos sin participantes activos no bloquean el final de la partida.
+El mapa utiliza salas rectangulares de piedra y pasillos rectos, con un recorrido conectado, puertas, decoración y controles de zoom. La última habitación siempre se llama **Salida** y conserva su acertijo final.
 
-El enlace «Descargar respuestas (.txt)» del panel permite descargar de nuevo las respuestas de esa misma mazmorra. Cada descarga comprueba los permisos del creador y no guarda archivos en carpetas públicas. Si el navegador bloquea la descarga automática inicial, se puede utilizar ese enlace.
+Cada jugador tiene su propia ficha y puede pulsar una sala contigua desbloqueada para desplazarse. Al resolver un mensaje, quien responde avanza automáticamente a la siguiente habitación. Sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
 
-## Puntuación, intentos y chat
+Cada participante recibe un color estable, distinto de los de sus compañeros, que utiliza en el mapa y en el chat. El borde de la ficha identifica al equipo; las iniciales y los nombres ayudan a identificar a cada jugador.
 
-Cada habitación parte de 100 puntos. Al resolverla se conceden `100 - 10 × fallos previos`, que pueden ser negativos; por ejemplo, 12 fallos dejan la habitación en −20 puntos. En equipos se suman los fallos de todos sus miembros en esa habitación. No se restan puntos de otras habitaciones, y los puntos ya concedidos en partidas anteriores se conservan. Las respuestas repetidas sobre una habitación resuelta no cuentan como nuevos intentos.
+El anfitrión ve las posiciones de todos los jugadores y el progreso, la puntuación y los intentos de cada equipo y participante. Los jugadores ven las fichas de su propio equipo y la clasificación general. El seguimiento utiliza **polling cada tres segundos con la pestaña activa**, sin WebSockets. Una ficha atenuada o el estado «Sin señal» indican falta de actividad reciente, no una salida explícita de la sala.
 
-El resumen final muestra intentos correctos e incorrectos, el detalle por jugador y habitación y la puntuación obtenida. El anfitrión también ve los intentos y fallos de cada grupo y participante en su panel.
+## Cifrados y generación de acertijos
 
-En modo por equipos hay un chat privado en el lobby y durante la partida, disponible hasta salir de la sala. Se abre desde el botón flotante de la esquina inferior derecha, se puede ocultar sin perder el borrador y se cierra también con Escape. Cada autor utiliza su mismo color personal en el chat y el mapa. Muestra los últimos 50 mensajes, actualizados cada tres segundos. Cada mensaje admite 500 caracteres y cada participante puede enviar hasta 10 mensajes en 30 segundos. El servidor obtiene el grupo de la sesión del navegador: no se aceptan identificadores de equipo enviados por el cliente. Los mensajes se muestran como texto y se eliminan al borrar la sala. El chat no aparece en partidas individuales ni en el panel del anfitrión.
+Los desafíos se generan en el servidor al crear la sala y se conservan al empezar la partida. Todos los equipos reciben los mismos mensajes, pero avanzan de forma independiente.
 
-## Generación de acertijos
+Las frases se construyen combinando plantillas y vocabulario compatible de [resources/data/phrases.php](resources/data/phrases.php), sin servicios externos de IA. Se eligen frases distintas por partida y se reparten los tres cifrados de forma equilibrada:
 
-Al crear una sala, el servidor combina plantillas de frases de la mazmorra con listas de palabras compatibles. Por ejemplo, «LA LLAVE DE ORO ABRE LA PUERTA DEL ARCHIVO» puede variar el material y el lugar sin perder coherencia. Las plantillas están en `resources/data/phrases.php`.
+| Cifrado | Generación y ayuda de resolución |
+| --- | --- |
+| César | Desplazamiento aleatorio, indicado junto al mensaje. |
+| Sustitución Simple | Alfabeto permutado sin letras que permanezcan en su posición; se muestran los alfabetos original y cifrado. |
+| Vigenère | Clave seleccionada del banco de palabras, mostrada junto a las instrucciones. |
 
-Se seleccionan frases distintas y se reparten los tres cifrados de forma equilibrada. César usa un desplazamiento aleatorio; Sustitución Simple, un alfabeto permutado sin letras que permanezcan en su posición; Vigenère, una clave del banco de palabras. Las ayudas de cada algoritmo se muestran junto al mensaje.
+Se utiliza el alfabeto A–Z, sin Ñ ni tildes. La validación de respuestas ignora diferencias de mayúsculas, tildes, espacios y puntuación.
 
-La generación se realiza una sola vez y se conserva al iniciar la partida: todos los equipos reciben los mismos desafíos y cada equipo tiene su propio progreso. Las soluciones se guardan cifradas y la validación se hace en el backend; el navegador del jugador recibe el mensaje cifrado y sus parámetros de resolución. Solo el anfitrión puede descargar las soluciones mediante el endpoint protegido del TXT. La respuesta admite diferencias de tildes, mayúsculas, espacios y puntuación. El bloque del mensaje cifrado impide seleccionar, copiar y arrastrar el texto desde la interfaz, sin afectar al campo de respuesta ni al chat. Esta medida disuade la copia directa; no impide capturas, OCR o la inspección del navegador.
+Las soluciones se guardan cifradas y se validan en el backend. No se incluyen en los datos enviados a los jugadores. El creador puede descargar el TXT mediante una ruta que comprueba sus permisos en cada petición; no se guarda un archivo público con las respuestas. Si el navegador bloquea la descarga automática inicial, el panel ofrece el enlace **«Descargar respuestas (.txt)»**.
 
-## Objetivo educativo
+El bloque del mensaje cifrado impide seleccionar, copiar, arrastrar y abrir el menú contextual desde la interfaz. El campo de respuesta y el chat mantienen su edición normal. Esta medida dificulta la copia directa, pero no impide capturas, OCR ni la inspección del navegador.
 
-El juego busca que los alumnos comprendan cómo funcionan los cifrados clásicos, identifiquen patrones y practiquen el razonamiento lógico. El formato por equipos permite trabajar también la comunicación y la resolución colaborativa de problemas.
+## Puntuación y resultados
 
-El anfitrión dispone de una vista de seguimiento para acompañar a los grupos y detectar dónde necesitan ayuda.
+Cada habitación parte de 100 puntos. Al resolverla se concede:
 
-El control de la sala se conserva en la sesión del navegador de quien la crea. El código permite unirse como participante, pero no gestionar los grupos. Para volver a administrar una sala, hay que utilizar el mismo navegador y conservar sus cookies.
+```text
+Puntos de la habitación = 100 − 10 × respuestas incorrectas previas
+```
 
-## Estado del proyecto
+La puntuación puede ser negativa: **12 fallos dejan el premio de esa habitación en −20 puntos**. En equipos se acumulan los fallos de todos sus miembros en esa habitación. No se descuentan puntos de otras habitaciones ni se recalculan premios ya concedidos.
 
-Están implementados las salas sin cuenta, las dificultades por cantidad de acertijos, la gestión de grupos, el acceso con código, el inicio de partida, el mapa 2D, los tres cifrados, la validación de respuestas, el progreso independiente y el seguimiento de puntuaciones mediante polling. No hay temporizador ni sistema de pistas con penalizaciones.
+Los intentos cuentan las respuestas correctas e incorrectas registradas por el servidor. Reenviar una respuesta a una habitación ya resuelta no añade intentos ni duplica puntos.
+
+Al completar el recorrido aparece un resumen con los intentos y fallos por jugador y habitación, y los puntos obtenidos. El anfitrión también puede consultar estos recuentos en su panel.
+
+## Chat por equipos
+
+El chat privado está disponible en el lobby, durante la partida y después de completar el recorrido, hasta salir de la sala. Se abre con el botón flotante de la esquina inferior derecha y se puede ocultar, también con Escape, sin perder el borrador.
+
+Cada autor aparece con su nombre y color personal. El chat muestra los últimos 50 mensajes, se actualiza cada tres segundos y permite mensajes de hasta 500 caracteres. Cada participante puede enviar hasta 10 mensajes en 30 segundos.
+
+El servidor identifica al jugador y su grupo mediante la sesión del navegador; no acepta identificadores de equipo elegidos por el cliente. Los mensajes se muestran como texto. El chat no aparece en partidas individuales ni en el panel del anfitrión, y sus mensajes se eliminan al borrar la sala.
+
+## Música ambiental
+
+La música se reproduce **solo en la pantalla del anfitrión**, con controles de pausa y volumen. Intenta arrancar automáticamente; si el navegador exige interacción para permitir sonido, reintenta la reproducción con el primer clic o pulsación de tecla en la página. El botón «Activar ambiente» permite iniciarla también manualmente.
+
+La aplicación elige una pista aleatoria y, al terminar, selecciona otra sin repetir inmediatamente la anterior cuando hay varias. Pausar y reanudar conserva la pista y su posición, y el polling no reinicia la reproducción.
+
+Para cambiar la selección, añade o elimina archivos directamente en **[public/audio/](public/audio/)**:
+
+- Se detectan automáticamente archivos MP3, M4A, OGG, WAV, WebM y AAC; la reproducción depende de los formatos admitidos por el navegador.
+- No hace falta modificar código ni variables de entorno. No se exploran subcarpetas.
+- Para actualizar la música en producción, incluye los archivos en el repositorio y vuelve a desplegar en Vercel.
+- Utiliza audios propios o con permiso para distribuirlos en la aplicación.
+
+Consulta [los detalles del audio](public/audio/README.md).
+
+## Gestión de salas y salidas
+
+El control de las salas está asociado a la sesión del navegador del creador. El código público permite unirse como participante, pero no administrar grupos, descargar respuestas ni borrar salas. Para seguir gestionándolas hay que conservar esa sesión y sus cookies; no existe recuperación mediante una cuenta.
+
+Los jugadores pueden salir desde el lobby o durante la partida. Salir del lobby libera su plaza; salir una vez iniciada la partida conserva los puntos y el historial del equipo, pero impide volver a entrar. Al completar su recorrido disponen de un botón de salida sin tener que esperar a los demás equipos.
+
+El anfitrión puede eliminar una sala desde su panel, previa confirmación. Se borran sus equipos, participantes, acertijos, progreso, intentos y mensajes de chat. Los jugadores conectados reciben un aviso cuando su pantalla se actualiza.
 
 ## Tecnologías
 
 | Área | Tecnología |
 | --- | --- |
-| Backend | PHP y Laravel |
-| Interfaz | Blade, Livewire y Alpine.js |
-| Estilos y mapa 2D | Tailwind CSS y CSS Grid |
+| Backend | PHP y Laravel 13 |
+| Interfaz | Blade, Livewire 4 y Alpine.js incluido por Livewire |
+| Estilos y mapa | Tailwind CSS 4 y CSS Grid |
+| Recursos frontend | Vite |
 | Base de datos | SQLite en local; PostgreSQL de Neon en Vercel |
-| Seguimiento de sesiones | Polling con Livewire |
-| Entorno local | Laravel Herd |
+| Actualizaciones | Polling con Livewire |
+| Entorno local | Laravel Herd, sin Docker |
 
-La aplicación concentra las reglas del juego en el servidor: la validación de respuestas, el progreso y las puntuaciones se calculan en el backend. Las soluciones de los acertijos permanecen fuera de los datos enviados a los jugadores; únicamente el creador tiene acceso al TXT de respuestas.
+Las reglas de acceso, validación, progreso y puntuación se aplican en el servidor. No hay temporizador ni sistema de pistas con penalizaciones; las ayudas de cada cifrado se muestran junto al mensaje.
 
-## Desarrollo local
+## Instalación y desarrollo local
 
-El proyecto utiliza Composer para las dependencias PHP y npm para los recursos frontend. Las versiones de dependencias están fijadas en `composer.lock` y `package-lock.json`; la versión de Node está indicada en `.nvmrc`.
+### Requisitos
 
-Con el entorno configurado en Herd, la aplicación se puede abrir en [cryptodungeon.test](https://cryptodungeon.test). Para trabajar en la interfaz con recarga automática:
+- Laravel Herd con PHP 8.5 y soporte para SQLite. Las dependencias del `composer.lock` actual requieren al menos PHP 8.4.1, aunque `composer.json` declare `^8.3`.
+- Composer.
+- Node.js 26.13.0, indicado en [.nvmrc](.nvmrc), y npm compatible con `engines` en [package.json](package.json).
+
+Las dependencias se fijan mediante `composer.lock` y `package-lock.json`. Si utilizas nvm, puedes seleccionar la versión del proyecto con `nvm install` y `nvm use`.
+
+### Primera instalación
+
+Desde la raíz de una copia nueva del proyecto:
+
+```sh
+cp .env.example .env
+composer install
+composer check-platform-reqs
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
+npm ci --ignore-scripts
+npm run build
+```
+
+En `.env`, mantén `DB_CONNECTION=sqlite` y configura `APP_URL` con la dirección local asignada por Herd. El proyecto no necesita Redis, un servidor de colas ni cuentas de profesor para jugar. No es necesario ejecutar seeders.
+
+Añade la carpeta a Herd y abre la URL que le asigne, por ejemplo `http://cryptodungeon.test`. Utiliza `https://cryptodungeon.test` si has activado HTTPS en Herd.
+
+Para trabajar con recarga automática del frontend, mantén este comando en otra terminal mientras Herd sirve Laravel:
 
 ```sh
 npm run dev
 ```
 
-Después de actualizar el código, aplica las migraciones pendientes antes de utilizar la aplicación. Esto actualiza el esquema de la base de datos conservando los registros existentes:
+### Actualizar una instalación existente
+
+Conserva tu `.env`, la base de datos y `APP_KEY`. Después de incorporar cambios o dependencias:
 
 ```sh
+composer install
+npm ci --ignore-scripts
 php artisan migrate
+npm run build
 ```
 
-Para ejecutar las pruebas y generar los recursos de producción:
+Las migraciones actualizan el esquema conservando los registros existentes. No uses `migrate:fresh` para una instalación con partidas que quieras conservar. Tampoco regeneres `APP_KEY`: se utiliza para cifrar las soluciones y proteger las cookies de sesión.
+
+### Verificación
 
 ```sh
 php artisan test
 npm run build
 ```
 
-## Publicación
+Las pruebas utilizan SQLite en memoria y cubren el acceso a salas, los permisos del anfitrión, la generación de acertijos, los movimientos, las puntuaciones, las salidas y la privacidad del chat, entre otros comportamientos. Algunas pruebas del reproductor ejecutan Node.js, por lo que debe estar disponible también al ejecutar la suite PHP.
 
-El proyecto incluye una adaptación para Vercel con PHP y una base PostgreSQL externa en Neon. El entorno local sigue utilizando Herd y SQLite. La configuración del despliegue, las variables de entorno y las comprobaciones están explicadas en la [guía de Vercel y Neon](docs/vercel.md).
+Para comprobar además la preparación de recursos estáticos de Vercel:
+
+```sh
+npm run build:vercel
+```
+
+## Dónde personalizar el proyecto
+
+| Archivo o carpeta | Contenido |
+| --- | --- |
+| [resources/data/phrases.php](resources/data/phrases.php) | Plantillas y vocabulario de los mensajes. |
+| [config/cryptodungeon.php](config/cryptodungeon.php) | Cantidad de acertijos por dificultad y umbral de presencia. |
+| [app/Services/ScoreCalculator.php](app/Services/ScoreCalculator.php) | Fórmula de puntuación. |
+| [resources/css/app.css](resources/css/app.css) | Estilos de la interfaz, mapa y chat flotante. |
+| [public/audio/](public/audio/) | Pistas de música detectadas automáticamente. |
+
+## Publicación en Vercel
+
+El proyecto incluye una adaptación para ejecutar Laravel con el runtime comunitario `vercel-php` y una base PostgreSQL externa en Neon. Vite compila los recursos; la aplicación sigue necesitando el backend PHP.
+
+La configuración de [vercel.json](vercel.json) utiliza:
+
+| Ajuste | Valor |
+| --- | --- |
+| Framework Preset | Other |
+| Install Command | `npm ci --ignore-scripts` |
+| Build Command | `npm run build:vercel` |
+| Output Directory | `dist` |
+
+Las variables se configuran en Vercel a partir de [.env.vercel.example](.env.vercel.example), sin subir secretos. El hook de despliegue aplica las migraciones a Neon; las salas de SQLite local no se transfieren automáticamente a producción.
+
+Los pasos de conexión, variables, detección automática de `APP_URL` y diagnóstico están en la [guía de Vercel y Neon](docs/vercel.md).
