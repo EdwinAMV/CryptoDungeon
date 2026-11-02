@@ -1,0 +1,23 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "version": 2,
+    "framework": null,
+    "fluid": false,
+    "installCommand": "npm ci --ignore-scripts",
+    "buildCommand": "npm run build:vercel",
+    "outputDirectory": "dist",
+    "env": {
+        "VERCEL_PHP_DOCROOT": "public"
+    },
+    "functions": {
+        "api/index.php": {
+            "runtime": "vercel-php@0.9.0",
+            "maxDuration": 30,
+            "excludeFiles": "{node_modules/**,dist/**,tests/**,docs/**,.git/**,.vercel/**,.env*,storage/**,database/*.sqlite*,bootstrap/cache/*.php,AGENTS*.md,CLAUDE*.md}"
+        }
+    },
+    "routes": [
+        { "handle": "filesystem" },
+        { "src": "/(.*)", "dest": "/api/index.php" }
+    ]
+}

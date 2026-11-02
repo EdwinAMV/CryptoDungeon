@@ -1,0 +1,41 @@
+# Dependencias: se instalan en Vercel.
+/vendor
+/node_modules
+
+# Datos, secretos y archivos generados en local.
+.env
+.env.*
+/auth.json
+/database/*.sqlite*
+/storage/**
+/bootstrap/cache/*.php
+/public/hot
+/public/storage
+/dist
+*.log
+
+# Herramientas, documentación y pruebas locales.
+/.git
+/.vercel
+/.idea
+/.vscode
+/tests
+/docs
+.phpunit*
+.DS_Store
+
+# Instrucciones y configuración de asistentes de IA.
+AGENTS*.md
+CLAUDE*.md
+GEMINI.md
+.agents
+.claude
+.codex
+.cursor
+.continue
+.windsurf
+.roo
+.github/instructions
+.github/prompts
+.github/agents
+.github/copilot-instructions.md

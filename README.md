@@ -63,3 +63,7 @@ Para ejecutar las pruebas y generar los recursos de producción:
 php artisan test
 npm run build
 ```
+
+## Publicación
+
+El proyecto incluye una adaptación para Vercel con PHP y una base PostgreSQL externa en Neon. El entorno local sigue utilizando Herd y SQLite. La configuración del despliegue, las variables de entorno y las comprobaciones están explicadas en la [guía de Vercel y Neon](docs/vercel.md).
