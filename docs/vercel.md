@@ -96,6 +96,12 @@ Si todavía no tienes una base para previews, configura solo Production. Los bui
 
 El control de una sala sigue asociado a la sesión del navegador del creador. Neon permite compartir esa sesión entre instancias de Vercel.
 
+## Si falla la preparación de la base
+
+El build comprueba primero la conexión con `SELECT 1` y después ejecuta las migraciones. Los logs indican la etapa y, en caso de error, un SQLSTATE y una orientación sin imprimir la URL, la contraseña ni el SQL. Si falla una migración, se indica su archivo.
+
+Comparte únicamente la línea que empieza por `[Vercel] Fallo en` para diagnosticar el problema. No actives `APP_DEBUG` ni reinicies la base para intentar resolverlo. En `DB_URL` pega solo la URL que empieza por `postgresql://`, sin el comando `psql` ni comillas envolventes.
+
 ## Verificación local
 
 ```sh

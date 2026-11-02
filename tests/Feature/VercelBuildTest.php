@@ -7,6 +7,25 @@ use Tests\TestCase;
 
 class VercelBuildTest extends TestCase
 {
+    public function test_a_pasted_psql_command_is_rejected_without_logging_its_credentials(): void
+    {
+        $password = 'private-test-password';
+        $process = new Process([PHP_BINARY, base_path('scripts/vercel-build.php')], base_path(), [
+            'VERCEL' => '1', 'APP_ENV' => 'production', 'APP_DEBUG' => 'false',
+            'APP_KEY' => 'base64:'.base64_encode(random_bytes(32)),
+            'APP_URL' => 'https://cryptodungeon.vercel.app',
+            'DB_CONNECTION' => 'pgsql',
+            'DB_URL' => "psql 'postgresql://user:".$password."@private-host.example/neondb?sslmode=require'",
+            'SESSION_DRIVER' => 'database', 'CACHE_STORE' => 'database',
+        ]);
+        $process->run();
+
+        $this->assertSame(1, $process->getExitCode());
+        $this->assertStringContainsString('formato inválido', $process->getErrorOutput());
+        $this->assertStringNotContainsString($password, $process->getOutput().$process->getErrorOutput());
+        $this->assertStringNotContainsString('private-host', $process->getOutput().$process->getErrorOutput());
+    }
+
     public function test_build_hook_refuses_to_run_in_the_local_environment(): void
     {
         $process = new Process([PHP_BINARY, base_path('scripts/vercel-build.php')], base_path(), ['VERCEL' => false]);

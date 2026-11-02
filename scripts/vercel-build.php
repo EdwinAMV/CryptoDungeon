@@ -1,7 +1,10 @@
 <?php
 
+use App\Support\DatabaseBuildDiagnostic;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\Events\MigrationStarted;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 // The community runtime invokes this script after installing Composer packages.
 // Refuse to run against the developer's local .env by accident.
@@ -34,8 +37,19 @@ try {
         throw new RuntimeException('Activa las variables de sistema de Vercel para detectar la URL, o configura APP_URL con un dominio HTTPS.');
     }
 
-    if (config('database.default') !== 'pgsql' || ! config('database.connections.pgsql.url')) {
-        throw new RuntimeException('Configura DB_CONNECTION=pgsql y DB_URL (o DATABASE_URL) con la conexión de Neon.');
+    if (config('database.default') !== 'pgsql') {
+        throw new RuntimeException('Configura DB_CONNECTION=pgsql en el entorno de este despliegue.');
+    }
+
+    $databaseUrl = config('database.connections.pgsql.url');
+    if (! is_string($databaseUrl) || trim($databaseUrl) === '') {
+        throw new RuntimeException('Configura DB_URL (o DATABASE_URL) con la conexión de Neon.');
+    }
+
+    $parts = parse_url($databaseUrl);
+    if (! is_array($parts) || ! in_array($parts['scheme'] ?? '', ['postgres', 'postgresql'], true)
+        || empty($parts['host']) || empty($parts['path']) || preg_match('/\s/', $databaseUrl)) {
+        throw new RuntimeException('DB_URL tiene un formato inválido. Copia solo la URL postgresql://..., sin psql ni comillas envolventes.');
     }
 
     if (! extension_loaded('pdo_pgsql')) {
@@ -50,7 +64,21 @@ try {
         throw new RuntimeException('Falta public/build/manifest.json. Ejecuta el build frontend antes de empaquetar PHP.');
     }
 
+    $stage = 'conexión';
+    fwrite(STDOUT, "[Vercel] Comprobando conexión PostgreSQL...\n");
+    DB::connection()->select('SELECT 1');
+    fwrite(STDOUT, "[Vercel] Conexión PostgreSQL correcta.\n");
+
+    $app['events']->listen(MigrationStarted::class, function (MigrationStarted $event) use (&$stage): void {
+        $file = (new ReflectionClass($event->migration))->getFileName();
+        $name = $file ? basename($file) : 'sin_nombre';
+        $stage = 'migración '.preg_replace('/[^a-zA-Z0-9_.-]/', '_', $name);
+        fwrite(STDOUT, '[Vercel] Ejecutando '.$stage."\n");
+    });
+
     foreach (['package:discover', 'migrate'] as $command) {
+        $stage = $command;
+        fwrite(STDOUT, '[Vercel] Ejecutando '.$command."\n");
         $arguments = $command === 'migrate' ? ['--force' => true, '--no-interaction' => true] : [];
         $exitCode = $kernel->call($command, $arguments);
         fwrite(STDOUT, $kernel->output());
@@ -61,7 +89,9 @@ try {
     }
 } catch (Throwable $exception) {
     // Do not print database exceptions: they can contain credentials or SQL data.
-    if ($exception instanceof RuntimeException && ! $exception instanceof PDOException && ! $exception instanceof QueryException) {
+    if ($exception instanceof PDOException || $exception instanceof QueryException) {
+        fwrite(STDERR, '[Vercel] Fallo en '.($stage ?? 'preparación').': '.DatabaseBuildDiagnostic::describe($exception)."\n");
+    } elseif ($exception instanceof RuntimeException) {
         fwrite(STDERR, $exception->getMessage()."\n");
     } else {
         fwrite(STDERR, 'No se pudo preparar la base de datos de producción ('.get_class($exception)."). Revisa la conexión de Neon.\n");
