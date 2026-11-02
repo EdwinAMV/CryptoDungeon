@@ -27,12 +27,17 @@ class GameService
         // The unique index also protects against simultaneous code generation.
         for ($attempt = 0; $attempt < 10; $attempt++) {
             try {
-                return GameSession::create([
-                    ...$data,
-                    'owner_token_hash' => app(RoomAccess::class)->ownerHash(create: true),
-                    'code' => (string) random_int(100000, 999999),
-                    'status' => GameStatus::Lobby,
-                ]);
+                return DB::transaction(function () use ($data) {
+                    $game = GameSession::create([
+                        ...$data,
+                        'owner_token_hash' => app(RoomAccess::class)->ownerHash(create: true),
+                        'code' => (string) random_int(100000, 999999),
+                        'status' => GameStatus::Lobby,
+                    ]);
+                    $this->ensureDungeon($game);
+
+                    return $game;
+                }, attempts: 3);
             } catch (UniqueConstraintViolationException $exception) {
                 if ($attempt === 9) {
                     throw $exception;
@@ -75,7 +80,7 @@ class GameService
     {
         $game->loadMissing('teams.participants');
         $cutoff = now()->subSeconds(config('cryptodungeon.presence_seconds'));
-        $online = fn ($team) => $team->participants->filter(fn ($player) => $player->last_seen_at?->gte($cutoff));
+        $online = fn ($team) => $team->participants->filter(fn ($player) => ! $player->left_at && $player->last_seen_at?->gte($cutoff));
 
         if ($game->mode === 'individual') {
             return $game->teams->sum(fn ($team) => $online($team)->count()) >= 2
@@ -105,19 +110,8 @@ class GameService
                 throw ValidationException::withMessages(['start' => $reason]);
             }
 
-            $generator = app(PuzzleGenerator::class);
-            $count = $generator->countForDifficulty($game->difficulty);
-            $phrases = app(PhraseGenerator::class)->generateMany($count);
-            $map = app(MapGenerator::class)->generate($count);
-            $ciphers = CipherType::cases();
-            shuffle($ciphers);
-            $roomIds = [];
-            foreach ($map['rooms'] as $index => $coordinates) {
-                $roomIds[] = $game->rooms()->create([
-                    ...$coordinates,
-                    ...$generator->generate($ciphers[$index % count($ciphers)], $phrases[$index]),
-                ])->id;
-            }
+            $this->ensureDungeon($game);
+            $roomIds = $game->rooms()->pluck('id')->all();
 
             $startedAt = now();
             $progress = [];
@@ -134,7 +128,6 @@ class GameService
             Participant::whereIn('team_id', $game->teams->modelKeys())->update(['current_room_id' => $roomIds[0]]);
             $game->forceFill([
                 'status' => GameStatus::Active, 'started_at' => $startedAt, 'ends_at' => null,
-                'map_layout' => ['columns' => $map['columns'], 'rows' => $map['rows']],
             ])->save();
 
             return $game;
@@ -152,6 +145,7 @@ class GameService
             $game = GameSession::query()->lockForUpdate()->findOrFail($gameId);
             $player = Participant::query()->lockForUpdate()->findOrFail($player->id);
             $team = Team::query()->lockForUpdate()->findOrFail($player->team_id);
+            abort_if($player->left_at !== null, 403);
             if ($game->status === GameStatus::Finished) {
                 return 'finished';
             }
@@ -185,9 +179,7 @@ class GameService
                 $player->forceFill(['current_room_id' => $next->id])->save();
             } else {
                 $team->forceFill(['finished_at' => now()])->save();
-                if (! $game->teams()->whereNull('finished_at')->exists()) {
-                    $game->forceFill(['status' => GameStatus::Finished, 'finished_at' => now()])->save();
-                }
+                $this->finishIfComplete($game);
             }
 
             return 'correct';
@@ -202,7 +194,7 @@ class GameService
             $player = Participant::findOrFail($participant->id);
             $game = GameSession::query()->lockForUpdate()->findOrFail($player->team->game_session_id);
             $player = Participant::query()->lockForUpdate()->findOrFail($player->id);
-            abort_if($game->status === GameStatus::Lobby, 403);
+            abort_if($game->status === GameStatus::Lobby || $player->left_at !== null, 403);
             $steps = $player->team->progress()->with('room')->orderBy('id')->get();
             $currentId = app(ParticipantPosition::class)->ensure($player, $steps);
             $current = $steps->firstWhere('room_id', $currentId);
@@ -260,6 +252,77 @@ class GameService
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['displayName' => 'Ese nombre ya está en uso. Elige otro.']);
         }
+    }
+
+    public function deleteSession(GameSession $game): void
+    {
+        Gate::authorize('delete', $game);
+        DB::transaction(function () use ($game) {
+            $locked = GameSession::query()->lockForUpdate()->findOrFail($game->id);
+            Gate::authorize('delete', $locked);
+            $locked->delete();
+        }, attempts: 3);
+    }
+
+    public function leaveSession(Participant $participant): void
+    {
+        abort_unless((int) session('participant_id') === $participant->id, 403);
+        DB::transaction(function () use ($participant) {
+            $game = GameSession::query()->lockForUpdate()->find($participant->team?->game_session_id);
+            if (! $game) {
+                return;
+            }
+            $player = Participant::query()->lockForUpdate()->find($participant->id);
+            if (! $player || $player->left_at) {
+                return;
+            }
+            if ($game->status === GameStatus::Lobby) {
+                $player->delete();
+                if ($game->mode === 'individual') {
+                    $player->team->delete();
+                }
+            } else {
+                $player->forceFill(['left_at' => now(), 'last_seen_at' => null, 'current_room_id' => null])->save();
+                $this->finishIfComplete($game);
+            }
+        }, attempts: 3);
+    }
+
+    private function finishIfComplete(GameSession $game): void
+    {
+        if ($game->status === GameStatus::Active && ! $game->teams()->whereNull('finished_at')
+            ->whereHas('participants', fn ($query) => $query->whereNull('left_at'))->exists()) {
+            $game->forceFill(['status' => GameStatus::Finished, 'finished_at' => now()])->save();
+        }
+    }
+
+    public function prepareDungeon(GameSession $game): void
+    {
+        Gate::authorize('update', $game);
+        DB::transaction(function () use ($game) {
+            $locked = GameSession::query()->lockForUpdate()->findOrFail($game->id);
+            $this->ensureDungeon($locked);
+        }, attempts: 3);
+    }
+
+    private function ensureDungeon(GameSession $game): void
+    {
+        if ($game->rooms()->exists()) {
+            return;
+        }
+        $generator = app(PuzzleGenerator::class);
+        $count = $generator->countForDifficulty($game->difficulty);
+        $phrases = app(PhraseGenerator::class)->generateMany($count);
+        $map = app(MapGenerator::class)->generate($count);
+        $ciphers = CipherType::cases();
+        shuffle($ciphers);
+        foreach ($map['rooms'] as $index => $coordinates) {
+            $game->rooms()->create([
+                ...$coordinates,
+                ...$generator->generate($ciphers[$index % count($ciphers)], $phrases[$index]),
+            ]);
+        }
+        $game->forceFill(['map_layout' => ['columns' => $map['columns'], 'rows' => $map['rows']]])->save();
     }
 
     private function ensureLobby(GameSession $game): void

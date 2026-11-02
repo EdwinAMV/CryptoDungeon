@@ -36,7 +36,8 @@ class GameplayTest extends TestCase
         $players[1]->update(['last_seen_at' => now()->subMinutes(2)]);
 
         Livewire::test(SessionLobby::class, ['gameSession' => $game])->call('start')->assertHasErrors(['start']);
-        $this->assertDatabaseCount('rooms', 0);
+        $this->assertDatabaseCount('rooms', 5);
+        $this->assertDatabaseCount('team_room_progress', 0);
         $players[1]->update(['last_seen_at' => now()]);
         Livewire::test(SessionLobby::class, ['gameSession' => $game])->call('start')->assertHasNoErrors();
         $this->assertSame(GameStatus::Active, $game->fresh()->status);

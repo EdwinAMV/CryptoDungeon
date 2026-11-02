@@ -28,6 +28,7 @@ class SessionCreate extends Component
 
         RateLimiter::hit($key, 60);
         session()->regenerate();
+        session()->flash('download_room_answers', $game->id);
 
         $this->redirectRoute('rooms.lobby', ['gameSession' => $game->id]);
     }

@@ -6,7 +6,7 @@ Está pensada para utilizarse en el aula: una persona crea la sala y organiza la
 
 ## Cómo se juega
 
-1. El anfitrión crea una sala y elige la dificultad: fácil (5 acertijos), normal (10) o difícil (15). En modo por equipos, crea los grupos.
+1. El anfitrión crea una sala y elige la dificultad: fácil (5 acertijos), normal (10) o difícil (15). Se genera la mazmorra y se descarga un TXT con las respuestas, accesible solo al creador. En modo por equipos, crea los grupos.
 2. Los alumnos se unen con un código de acceso de seis cifras y un nombre o alias.
 3. El anfitrión inicia la partida cuando hay al menos dos jugadores conectados en individual o al menos dos equipos, cada uno con un jugador conectado.
 4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
@@ -16,17 +16,21 @@ El plano representa salas de piedra conectadas por pasillos rectos. Cada jugador
 
 El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Los colores identifican los grupos y las fichas atenuadas indican jugadores sin señal reciente.
 
-El botón «Activar ambiente» reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música es opcional y se inicia al pulsar el botón. Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
+Solo el anfitrión dispone del botón «Activar ambiente», que reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música es opcional y se inicia al pulsar el botón. Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
 
 La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habitaciones conectadas, según la dificultad. Todos incluyen **Cifrado César, Cifrado de Sustitución Simple y Cifrado de Vigenère**, con frases y claves variables entre partidas.
 
+El creador puede eliminar la sala y todos sus datos desde su panel, previa confirmación. Los jugadores pueden salir desde el lobby o durante la partida, y disponen de un botón de salida al completar su recorrido. Salir durante la partida conserva los puntos del equipo y el historial de respuestas, pero impide volver a entrar. Los equipos sin participantes activos no bloquean el final de la partida.
+
+El enlace «Descargar respuestas (.txt)» del panel permite descargar de nuevo las respuestas de esa misma mazmorra. Cada descarga comprueba los permisos del creador y no guarda archivos en carpetas públicas. Si el navegador bloquea la descarga automática inicial, se puede utilizar ese enlace.
+
 ## Generación de acertijos
 
-Al iniciar una partida, el servidor combina plantillas de frases de la mazmorra con listas de palabras compatibles. Por ejemplo, «LA LLAVE DE ORO ABRE LA PUERTA DEL ARCHIVO» puede variar el material y el lugar sin perder coherencia. Las plantillas están en `resources/data/phrases.php`.
+Al crear una sala, el servidor combina plantillas de frases de la mazmorra con listas de palabras compatibles. Por ejemplo, «LA LLAVE DE ORO ABRE LA PUERTA DEL ARCHIVO» puede variar el material y el lugar sin perder coherencia. Las plantillas están en `resources/data/phrases.php`.
 
 Se seleccionan frases distintas y se reparten los tres cifrados de forma equilibrada. César usa un desplazamiento aleatorio; Sustitución Simple, un alfabeto permutado sin letras que permanezcan en su posición; Vigenère, una clave del banco de palabras. Las ayudas de cada algoritmo se muestran junto al mensaje.
 
-La generación se realiza una sola vez: todos los equipos reciben los mismos desafíos y cada equipo tiene su propio progreso. Las soluciones se guardan cifradas y la validación se hace en el backend; el navegador recibe el mensaje cifrado y sus parámetros de resolución. La respuesta admite diferencias de tildes, mayúsculas, espacios y puntuación.
+La generación se realiza una sola vez y se conserva al iniciar la partida: todos los equipos reciben los mismos desafíos y cada equipo tiene su propio progreso. Las soluciones se guardan cifradas y la validación se hace en el backend; el navegador del jugador recibe el mensaje cifrado y sus parámetros de resolución. Solo el anfitrión puede descargar las soluciones mediante el endpoint protegido del TXT. La respuesta admite diferencias de tildes, mayúsculas, espacios y puntuación.
 
 ## Objetivo educativo
 
@@ -51,7 +55,7 @@ Están implementados las salas sin cuenta, las dificultades por cantidad de acer
 | Seguimiento de sesiones | Polling con Livewire |
 | Entorno local | Laravel Herd |
 
-La aplicación concentra las reglas del juego en el servidor: la validación de respuestas, el progreso y las puntuaciones se calculan en el backend. Las soluciones de los acertijos deben permanecer fuera de los datos enviados al navegador.
+La aplicación concentra las reglas del juego en el servidor: la validación de respuestas, el progreso y las puntuaciones se calculan en el backend. Las soluciones de los acertijos permanecen fuera de los datos enviados a los jugadores; únicamente el creador tiene acceso al TXT de respuestas.
 
 ## Desarrollo local
 

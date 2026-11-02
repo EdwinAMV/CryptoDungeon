@@ -17,4 +17,9 @@ class GameSessionPolicy
     {
         return $this->view($user, $gameSession);
     }
+
+    public function delete(?User $user, GameSession $gameSession): bool
+    {
+        return $this->view($user, $gameSession);
+    }
 }

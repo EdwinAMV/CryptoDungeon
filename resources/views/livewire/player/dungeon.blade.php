@@ -7,7 +7,7 @@
         <p aria-live="polite">{{ $solvedCount }} / {{ count($tiles) }} habitaciones · {{ $score }} puntos</p>
     </header>
 
-    <x-background-music />
+    <x-leave-room :completed="$participant->team->finished_at !== null || $game->status === \App\Enums\GameStatus::Finished" />
     @error('movement')<p role="alert" class="rounded-xl bg-red-950 p-4 text-red-200">{{ $message }}</p>@enderror
     <x-dungeon-map :map="$map" title="Tu expedición" />
 
@@ -43,7 +43,7 @@
                 <p class="mt-4 text-slate-300">Tu equipo ya ha descifrado este mensaje. Avanza por las salas abiertas del mapa hasta la habitación {{ $nextPosition }} para continuar.</p>
             @else
                 <h2 class="text-2xl font-bold text-emerald-300">{{ $game->status === \App\Enums\GameStatus::Finished ? '¡Partida completada!' : '¡Habéis salido de la mazmorra!' }}</h2>
-                <p class="mt-4 text-slate-300">{{ $game->status === \App\Enums\GameStatus::Finished ? 'Todos los equipos han terminado su recorrido.' : 'Vuestro recorrido está completo. Los demás equipos pueden seguir resolviendo sus mensajes.' }}</p>
+                <p class="mt-4 text-slate-300">{{ $game->status === \App\Enums\GameStatus::Finished ? 'La partida ha terminado. Ya puedes salir de la sala.' : 'Vuestro recorrido está completo. Puedes salir de la sala mientras los demás equipos continúan.' }}</p>
             @endif
     </section>
 

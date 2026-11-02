@@ -24,7 +24,7 @@ class Lobby extends Component
     private function participant(): Participant
     {
         $participant = Participant::with('team.gameSession')->find(session('participant_id'));
-        abort_unless($participant, 403);
+        abort_unless($participant && ! $participant->left_at, 403);
 
         return $participant;
     }
@@ -63,6 +63,12 @@ class Lobby extends Component
 
     public function render()
     {
+        $identity = session('participant_id');
+        if ($identity && ! Participant::whereKey($identity)->whereNull('left_at')->exists()) {
+            session()->forget('participant_id');
+
+            return view('livewire.player.room-closed');
+        }
         // Identity comes only from the browser session, never a client-supplied ID.
         $participant = $this->participant();
         $participant->update(['last_seen_at' => now()]);
@@ -107,7 +113,7 @@ class Lobby extends Component
         return view('livewire.player.lobby', [
             'participant' => $participant,
             'game' => $game,
-            'teammates' => $participant->team->participants()->orderBy('id')->get(),
+            'teammates' => $participant->team->participants()->whereNull('left_at')->orderBy('id')->get(),
         ]);
     }
 }

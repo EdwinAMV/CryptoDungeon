@@ -27,7 +27,7 @@ class DungeonMapService
             $steps = $progress->where('team_id', $team->id);
             $fallback = $steps->first(fn ($step) => $step->unlocked_at && ! $step->solved_at)
                 ?? $steps->filter(fn ($step) => $step->unlocked_at)->last();
-            foreach ($team->participants as $player) {
+            foreach ($team->participants->whereNull('left_at') as $player) {
                 $location = $rooms->contains('id', $player->current_room_id) ? $player->current_room_id : $fallback?->room_id;
                 $players[] = $this->marker($player, $team->name, $color, $location);
             }
@@ -38,13 +38,13 @@ class DungeonMapService
 
     public function forPlayer(Participant $participant, array $tiles): array
     {
-        abort_unless((int) session('participant_id') === $participant->id, 403);
+        abort_unless((int) session('participant_id') === $participant->id && ! $participant->left_at, 403);
         $team = $participant->team;
         $color = $this->teamColor($team->id);
         $steps = $team->progress()->orderBy('id')->get();
         $fallback = $steps->first(fn ($step) => $step->unlocked_at && ! $step->solved_at)
             ?? $steps->filter(fn ($step) => $step->unlocked_at)->last();
-        $players = $team->participants()->get()->map(fn ($player) => $this->marker(
+        $players = $team->participants()->whereNull('left_at')->get()->map(fn ($player) => $this->marker(
             $player, $team->name, $color, $player->current_room_id ?? $fallback?->room_id,
             $player->id === $participant->id,
         ))->all();

@@ -18,10 +18,14 @@ class SessionLobby extends Component
 
     public string $teamName = '';
 
+    #[Locked]
+    public bool $downloadAnswers = false;
+
     public function mount(GameSession $gameSession): void
     {
         Gate::authorize('view', $gameSession);
         $this->gameSessionId = $gameSession->id;
+        $this->downloadAnswers = (int) session()->pull('download_room_answers') === $gameSession->id;
     }
 
     public function addTeam(GameService $games): void

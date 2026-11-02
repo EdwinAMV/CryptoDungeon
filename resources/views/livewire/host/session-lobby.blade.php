@@ -1,5 +1,13 @@
 <div wire:poll.3s>
     <a href="{{ route('rooms.index') }}" class="text-sm text-slate-400 hover:text-white">← Mis salas</a>
+    <div class="my-5 flex flex-wrap items-center gap-4" x-data @if ($downloadAnswers) x-init="$refs.answersDownload.click()" @endif>
+        <a x-ref="answersDownload" href="{{ route('rooms.answers', $game) }}" download class="btn-secondary">Descargar respuestas (.txt)</a>
+        <form action="{{ route('rooms.destroy', $game) }}" method="POST" onsubmit="return confirm('¿Eliminar esta sala y todos sus datos? Los jugadores conectados saldrán y esta acción no se puede deshacer.')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-secondary text-red-300">Eliminar sala</button>
+        </form>
+    </div>
     @if ($map)
         <div class="my-5 flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-2xl font-bold">Vista del anfitrión</h1>
@@ -49,7 +57,7 @@
                             @forelse ($team->participants as $player)
                                 <li wire:key="participant-{{ $player->id }}" class="flex items-center justify-between gap-2">
                                     <span class="break-words">{{ $player->display_name }}</span>
-                                    <span class="text-xs {{ $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'text-emerald-400' : 'text-slate-500' }}">{{ $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'Conectado' : 'Sin señal' }}</span>
+                                    <span class="text-xs {{ ! $player->left_at && $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'text-emerald-400' : 'text-slate-500' }}">{{ $player->left_at ? 'Ha salido' : ($player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'Conectado' : 'Sin señal') }}</span>
                                 </li>
                             @empty
                                 <li class="text-slate-400">Esperando participantes…</li>

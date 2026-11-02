@@ -20,7 +20,7 @@ class JoinSession extends Component
 
     public function mount(): void
     {
-        if (Participant::whereKey(session('participant_id'))->exists()) {
+        if (Participant::whereKey(session('participant_id'))->whereNull('left_at')->exists()) {
             $this->redirectRoute('player.lobby');
         }
     }
@@ -33,7 +33,7 @@ class JoinSession extends Component
 
     public function join(GameService $games): void
     {
-        if (Participant::whereKey(session('participant_id'))->exists()) {
+        if (Participant::whereKey(session('participant_id'))->whereNull('left_at')->exists()) {
             $this->redirectRoute('player.lobby');
 
             return;

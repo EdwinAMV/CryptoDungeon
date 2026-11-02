@@ -1,4 +1,5 @@
 <x-app-layout>
+    @if (session('status'))<p role="status" class="panel mb-6">{{ session('status') }}</p>@endif
     <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold">Mis salas</h1>

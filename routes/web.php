@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\ParticipantController;
 use App\Livewire\Host\SessionCreate;
 use App\Livewire\Host\SessionLobby;
@@ -22,6 +23,8 @@ Route::prefix('salas')->name('rooms.')->group(function () {
         ]);
     })->name('index');
     Route::get('/crear', SessionCreate::class)->name('create');
+    Route::get('/{gameSession}/respuestas', [GameSessionController::class, 'answers'])->name('answers');
+    Route::delete('/{gameSession}', [GameSessionController::class, 'destroy'])->name('destroy');
     Route::get('/{gameSession}/lobby', SessionLobby::class)->name('lobby');
 });
 
