@@ -5,9 +5,15 @@
             <h1 class="text-xl font-bold">Lobby de la sala</h1>
             <p class="mt-5 text-sm text-slate-400">Entra en {{ url('/entrar') }} con el código</p>
             <p class="my-5 font-mono text-4xl font-black tracking-widest text-amber-300 sm:text-5xl">{{ $game->code }}</p>
-            <p>{{ $game->mode === 'teams' ? 'Por equipos' : 'Individual' }} · {{ $game->difficulty === 'easy' ? 'Fácil' : 'Normal' }}</p>
-            <p class="mt-2 text-slate-400">{{ $game->duration_minutes }} minutos</p>
-            <p class="mt-6 text-sm text-amber-200">El inicio de la aventura todavía no está disponible.</p>
+            <p>{{ $game->mode === 'teams' ? 'Por equipos' : 'Individual' }} · {{ ['easy' => 'Fácil', 'normal' => 'Normal', 'hard' => 'Difícil'][$game->difficulty] }}</p>
+            <p class="mt-2 text-slate-400">{{ $puzzleCount }} acertijos · Sin límite de tiempo</p>
+            @if ($game->status === \App\Enums\GameStatus::Lobby)
+                <button wire:click="start" wire:loading.attr="disabled" wire:target="start" @disabled($startBlockReason !== null) class="btn-primary mt-6 w-full">Empezar partida</button>
+                <p class="mt-3 text-sm text-amber-200" aria-live="polite">{{ $startBlockReason ?? 'Todo listo. Puedes empezar la partida.' }}</p>
+            @else
+                <p class="mt-6 font-bold text-amber-200">{{ $game->status === \App\Enums\GameStatus::Active ? 'Partida en curso' : 'Partida finalizada' }}</p>
+                <p class="mt-2 text-sm text-slate-400">Cada equipo avanza de forma independiente.</p>
+            @endif
         </section>
         <section>
             <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -28,11 +34,15 @@
                 @forelse ($game->teams as $team)
                     <article wire:key="team-{{ $team->id }}" class="panel">
                         <h3 class="font-bold text-amber-200">{{ $team->name }}</h3>
+                        @if ($game->status !== \App\Enums\GameStatus::Lobby)
+                            <p class="mt-2 text-sm text-slate-300">{{ $team->solved_count }} / {{ $game->rooms_count }} resueltos · {{ $team->score ?? 0 }} puntos</p>
+                            @if ($team->finished_at)<p class="mt-1 text-sm text-emerald-400">Recorrido completado</p>@endif
+                        @endif
                         <ul class="mt-4 space-y-2 text-sm">
                             @forelse ($team->participants as $player)
                                 <li wire:key="participant-{{ $player->id }}" class="flex items-center justify-between gap-2">
                                     <span class="break-words">{{ $player->display_name }}</span>
-                                    <span class="text-xs {{ $player->last_seen_at?->gt(now()->subSeconds(20)) ? 'text-emerald-400' : 'text-slate-500' }}">{{ $player->last_seen_at?->gt(now()->subSeconds(20)) ? 'Conectado' : 'Sin señal' }}</span>
+                                    <span class="text-xs {{ $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'text-emerald-400' : 'text-slate-500' }}">{{ $player->last_seen_at?->gte(now()->subSeconds(config('cryptodungeon.presence_seconds'))) ? 'Conectado' : 'Sin señal' }}</span>
                                 </li>
                             @empty
                                 <li class="text-slate-400">Esperando participantes…</li>

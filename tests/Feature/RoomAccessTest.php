@@ -21,13 +21,13 @@ class RoomAccessTest extends TestCase
     private function game(): GameSession
     {
         return app(GameService::class)->createSession([
-            'mode' => 'teams', 'difficulty' => 'easy', 'duration_minutes' => 10,
+            'mode' => 'teams', 'difficulty' => 'easy',
         ]);
     }
 
     public function test_guest_host_can_create_a_room_return_to_it_and_add_groups(): void
     {
-        Livewire::test(SessionCreate::class)->set('durationMinutes', 10)
+        Livewire::test(SessionCreate::class)
             ->call('save')->assertHasNoErrors();
 
         $game = GameSession::sole();

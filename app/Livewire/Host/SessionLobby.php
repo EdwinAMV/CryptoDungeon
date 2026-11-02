@@ -4,6 +4,7 @@ namespace App\Livewire\Host;
 
 use App\Models\GameSession;
 use App\Services\GameService;
+use App\Services\PuzzleGenerator;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -27,6 +28,12 @@ class SessionLobby extends Component
         $this->reset('teamName');
     }
 
+    public function start(GameService $games): void
+    {
+        $games->startSession($this->game());
+        $this->resetValidation();
+    }
+
     private function game(): GameSession
     {
         $game = GameSession::findOrFail($this->gameSessionId);
@@ -37,8 +44,16 @@ class SessionLobby extends Component
 
     public function render()
     {
-        $game = $this->game()->load(['teams.participants']);
+        $game = $this->game()->load(['teams' => fn ($query) => $query
+            ->with('participants')
+            ->withSum('progress as score', 'awarded_points')
+            ->withCount(['progress as solved_count' => fn ($progress) => $progress->whereNotNull('solved_at')]),
+        ])->loadCount('rooms');
 
-        return view('livewire.host.session-lobby', ['game' => $game]);
+        return view('livewire.host.session-lobby', [
+            'game' => $game,
+            'startBlockReason' => app(GameService::class)->startBlockReason($game),
+            'puzzleCount' => app(PuzzleGenerator::class)->countForDifficulty($game->difficulty),
+        ]);
     }
 }

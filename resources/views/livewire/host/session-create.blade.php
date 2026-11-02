@@ -15,16 +15,14 @@
         </div>
         <div>
             <label for="difficulty" class="field-label">Dificultad</label>
-            <select id="difficulty" wire:model="difficulty" class="field">
-                <option value="easy">Fácil</option>
-                <option value="normal">Normal</option>
+            <select id="difficulty" wire:model.live="difficulty" class="field">
+                <option value="easy">Fácil · {{ $puzzleCounts['easy'] }} acertijos</option>
+                <option value="normal">Normal · {{ $puzzleCounts['normal'] }} acertijos</option>
+                <option value="hard">Difícil · {{ $puzzleCounts['hard'] }} acertijos</option>
             </select>
+            <p class="mt-2 text-sm text-slate-400">La dificultad determina la cantidad de acertijos. Todos los niveles incluyen los tres cifrados.</p>
         </div>
-        <div>
-            <label for="duration" class="field-label">Duración en minutos</label>
-            <input id="duration" type="number" min="5" max="120" wire:model="durationMinutes" required class="field">
-            <p class="mt-2 text-sm text-slate-400">Entre 5 y 120 minutos. El tiempo empezará al iniciar la partida.</p>
-        </div>
+        <p class="text-sm text-slate-400">Sin límite de tiempo. César, Sustitución Simple y Vigenère.</p>
         <button class="btn-primary w-full" wire:loading.attr="disabled" wire:target="save">Crear lobby</button>
     </form>
 </section>

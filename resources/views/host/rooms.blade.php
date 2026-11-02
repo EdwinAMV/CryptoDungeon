@@ -11,7 +11,7 @@
             <a href="{{ route('rooms.lobby', $game) }}" class="panel block transition hover:border-amber-400">
                 <p class="text-sm text-slate-400">{{ $game->created_at->format('d/m/Y H:i') }}</p>
                 <p class="my-3 font-mono text-3xl font-bold tracking-widest text-amber-300">{{ $game->code }}</p>
-                <p>{{ $game->mode === 'teams' ? 'Por equipos' : 'Individual' }} · {{ $game->duration_minutes }} minutos</p>
+                <p>{{ $game->mode === 'teams' ? 'Por equipos' : 'Individual' }} · {{ ['easy' => 'Fácil', 'normal' => 'Normal', 'hard' => 'Difícil'][$game->difficulty] }}</p>
                 <p class="mt-2 text-sm text-slate-400">{{ $game->participants_count }} participantes · {{ ['lobby' => 'En el lobby', 'active' => 'En curso', 'finished' => 'Finalizada'][$game->status->value] }}</p>
             </a>
         @empty

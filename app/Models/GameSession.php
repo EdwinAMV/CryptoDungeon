@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class GameSession extends Model
 {
-    protected $fillable = ['owner_token_hash', 'code', 'mode', 'difficulty', 'duration_minutes', 'status'];
+    protected $fillable = ['owner_token_hash', 'code', 'mode', 'difficulty', 'status'];
 
     protected $hidden = ['owner_token_hash'];
 
@@ -18,6 +18,7 @@ class GameSession extends Model
         return [
             'status' => GameStatus::class,
             'duration_minutes' => 'integer',
+            'map_layout' => 'array',
             'started_at' => 'immutable_datetime',
             'ends_at' => 'immutable_datetime',
             'finished_at' => 'immutable_datetime',
@@ -27,6 +28,11 @@ class GameSession extends Model
     public function teams(): HasMany
     {
         return $this->hasMany(Team::class);
+    }
+
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class)->orderBy('position');
     }
 
     public function participants(): HasManyThrough

@@ -43,6 +43,19 @@ class RoomMigrationTest extends TestCase
                 'mode' => 'teams', 'difficulty' => 'easy', 'duration_minutes' => 10,
             ]);
             $this->assertSame(2, DB::table('game_sessions')->count());
+
+            (require database_path('migrations/2026_11_02_000002_add_playable_dungeons.php'))->up();
+            $this->assertSame(10, DB::table('game_sessions')->where('id', $game)->value('duration_minutes'));
+            $this->assertSame('easy', DB::table('game_sessions')->where('id', $game)->value('difficulty'));
+            $this->assertSame('Ana', DB::table('participants')->where('team_id', $team)->value('display_name'));
+            $this->assertSame([], DB::select('PRAGMA foreign_key_check'));
+            DB::table('game_sessions')->insert([
+                'owner_token_hash' => hash('sha256', 'new-owner'), 'code' => '777777',
+                'mode' => 'individual', 'difficulty' => 'hard',
+            ]);
+            $this->assertSame(3, DB::table('game_sessions')->count());
+            $this->assertTrue(Schema::hasTable('rooms'));
+            $this->assertTrue(Schema::hasTable('team_room_progress'));
         } finally {
             DB::purge('migration_test');
             DB::setDefaultConnection($originalConnection);

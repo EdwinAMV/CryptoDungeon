@@ -25,7 +25,6 @@ class LobbyTest extends TestCase
         return app(GameService::class)->createSession([
             'mode' => $mode,
             'difficulty' => 'easy',
-            'duration_minutes' => 30,
         ]);
     }
 
@@ -39,7 +38,7 @@ class LobbyTest extends TestCase
     public function test_host_can_create_a_configured_room_without_an_account(): void
     {
         Livewire::test(SessionCreate::class)
-            ->set('mode', 'individual')->set('difficulty', 'normal')->set('durationMinutes', 45)
+            ->set('mode', 'individual')->set('difficulty', 'hard')
             ->call('save')->assertHasNoErrors();
 
         $game = GameSession::sole();
@@ -49,23 +48,24 @@ class LobbyTest extends TestCase
         $this->assertMatchesRegularExpression('/^[0-9]{6}$/', $game->code);
         $this->assertSame(GameStatus::Lobby, $game->status);
         $this->assertSame('individual', $game->mode);
-        $this->assertSame('normal', $game->difficulty);
-        $this->assertSame(45, $game->duration_minutes);
+        $this->assertSame('hard', $game->difficulty);
+        $this->assertNull($game->duration_minutes);
     }
 
     public function test_invalid_settings_cannot_create_a_session(): void
     {
         Livewire::test(SessionCreate::class)
-            ->set('mode', 'unknown')->set('difficulty', 'unknown')->set('durationMinutes', 0)
-            ->call('save')->assertHasErrors(['mode', 'difficulty', 'duration_minutes']);
+            ->set('mode', 'unknown')->set('difficulty', 'unknown')
+            ->call('save')->assertHasErrors(['mode', 'difficulty']);
 
         $this->assertDatabaseCount('game_sessions', 0);
     }
 
-    public function test_empty_duration_gets_a_validation_error(): void
+    public function test_room_form_has_three_difficulties_and_no_timer(): void
     {
-        Livewire::test(SessionCreate::class)
-            ->set('durationMinutes', '')->call('save')->assertHasErrors(['duration_minutes']);
+        $this->get(route('rooms.create'))->assertOk()
+            ->assertSee('5 acertijos')->assertSee('10 acertijos')->assertSee('15 acertijos')
+            ->assertDontSee('id="duration"', false);
     }
 
     public function test_another_browser_cannot_open_or_modify_the_host_lobby(): void

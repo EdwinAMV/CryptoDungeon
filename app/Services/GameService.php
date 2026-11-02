@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\CipherType;
 use App\Enums\GameStatus;
 use App\Models\GameSession;
 use App\Models\Participant;
 use App\Models\Team;
+use App\Models\TeamRoomProgress;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -19,8 +21,7 @@ class GameService
     {
         $data = Validator::make($input, [
             'mode' => ['required', Rule::in(['individual', 'teams'])],
-            'difficulty' => ['required', Rule::in(['easy', 'normal'])],
-            'duration_minutes' => ['required', 'integer', 'min:5', 'max:120'],
+            'difficulty' => ['required', Rule::in(['easy', 'normal', 'hard'])],
         ])->validate();
 
         // The unique index also protects against simultaneous code generation.
@@ -68,6 +69,122 @@ class GameService
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['teamName' => 'Ya existe un equipo con ese nombre.']);
         }
+    }
+
+    public function startBlockReason(GameSession $game): ?string
+    {
+        $game->loadMissing('teams.participants');
+        $cutoff = now()->subSeconds(config('cryptodungeon.presence_seconds'));
+        $online = fn ($team) => $team->participants->filter(fn ($player) => $player->last_seen_at?->gte($cutoff));
+
+        if ($game->mode === 'individual') {
+            return $game->teams->sum(fn ($team) => $online($team)->count()) >= 2
+                ? null : 'Se necesitan al menos 2 jugadores conectados para empezar.';
+        }
+        if ($game->teams->count() < 2) {
+            return 'Crea al menos 2 equipos para empezar.';
+        }
+        if ($game->teams->contains(fn ($team) => $online($team)->isEmpty())) {
+            return 'Cada equipo necesita al menos 1 jugador conectado para empezar.';
+        }
+
+        return null;
+    }
+
+    public function startSession(GameSession $gameSession): GameSession
+    {
+        Gate::authorize('update', $gameSession);
+
+        return DB::transaction(function () use ($gameSession) {
+            $game = GameSession::query()->lockForUpdate()->findOrFail($gameSession->id);
+            if ($game->status === GameStatus::Active) {
+                return $game;
+            }
+            $this->ensureLobby($game);
+            if ($reason = $this->startBlockReason($game)) {
+                throw ValidationException::withMessages(['start' => $reason]);
+            }
+
+            $generator = app(PuzzleGenerator::class);
+            $count = $generator->countForDifficulty($game->difficulty);
+            $phrases = app(PhraseGenerator::class)->generateMany($count);
+            $map = app(MapGenerator::class)->generate($count);
+            $ciphers = CipherType::cases();
+            shuffle($ciphers);
+            $roomIds = [];
+            foreach ($map['rooms'] as $index => $coordinates) {
+                $roomIds[] = $game->rooms()->create([
+                    ...$coordinates,
+                    ...$generator->generate($ciphers[$index % count($ciphers)], $phrases[$index]),
+                ])->id;
+            }
+
+            $startedAt = now();
+            $progress = [];
+            foreach ($game->teams as $team) {
+                foreach ($roomIds as $index => $roomId) {
+                    $progress[] = [
+                        'team_id' => $team->id, 'room_id' => $roomId,
+                        'unlocked_at' => $index === 0 ? $startedAt : null,
+                        'created_at' => $startedAt, 'updated_at' => $startedAt,
+                    ];
+                }
+            }
+            TeamRoomProgress::insert($progress);
+            $game->forceFill([
+                'status' => GameStatus::Active, 'started_at' => $startedAt, 'ends_at' => null,
+                'map_layout' => ['columns' => $map['columns'], 'rows' => $map['rows']],
+            ])->save();
+
+            return $game;
+        }, attempts: 3);
+    }
+
+    public function submitAnswer(Participant $participant, int $roomId, string $answer): string
+    {
+        abort_unless((int) session('participant_id') === $participant->id, 403);
+        Validator::make(['answer' => $answer], ['answer' => ['required', 'string', 'max:300']])->validate();
+
+        return DB::transaction(function () use ($participant, $roomId, $answer) {
+            $player = Participant::findOrFail($participant->id);
+            $gameId = $player->team->game_session_id;
+            $game = GameSession::query()->lockForUpdate()->findOrFail($gameId);
+            $team = Team::query()->lockForUpdate()->findOrFail($player->team_id);
+            if ($game->status === GameStatus::Finished) {
+                return 'finished';
+            }
+            if ($game->status !== GameStatus::Active) {
+                throw ValidationException::withMessages(['answer' => 'La partida todavía no ha empezado.']);
+            }
+
+            $progress = $team->progress()->where('room_id', $roomId)->lockForUpdate()->first();
+            abort_unless($progress && $progress->unlocked_at && $progress->room->game_session_id === $game->id, 403);
+            if ($progress->solved_at) {
+                return 'already_solved';
+            }
+
+            $correct = app(AnswerValidator::class)->matches($answer, $progress->room->solution);
+            DB::table('answer_attempts')->insert([
+                'team_room_progress_id' => $progress->id, 'participant_id' => $player->id,
+                'is_correct' => $correct, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            if (! $correct) {
+                return 'incorrect';
+            }
+
+            $progress->update(['solved_at' => now(), 'awarded_points' => app(ScoreCalculator::class)->solvedRoom()]);
+            $next = $game->rooms()->where('position', '>', $progress->room->position)->first();
+            if ($next) {
+                $team->progress()->where('room_id', $next->id)->update(['unlocked_at' => now()]);
+            } else {
+                $team->forceFill(['finished_at' => now()])->save();
+                if (! $game->teams()->whereNull('finished_at')->exists()) {
+                    $game->forceFill(['status' => GameStatus::Finished, 'finished_at' => now()])->save();
+                }
+            }
+
+            return 'correct';
+        }, attempts: 3);
     }
 
     public function joinSession(string $code, string $name, ?int $teamId): Participant

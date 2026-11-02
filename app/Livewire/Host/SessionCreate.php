@@ -13,8 +13,6 @@ class SessionCreate extends Component
 
     public string $difficulty = 'easy';
 
-    public $durationMinutes = 30;
-
     public function save(GameService $games): void
     {
         $key = 'create-room:'.request()->ip();
@@ -26,7 +24,6 @@ class SessionCreate extends Component
         $game = $games->createSession([
             'mode' => $this->mode,
             'difficulty' => $this->difficulty,
-            'duration_minutes' => $this->durationMinutes,
         ]);
 
         RateLimiter::hit($key, 60);
@@ -37,6 +34,8 @@ class SessionCreate extends Component
 
     public function render()
     {
-        return view('livewire.host.session-create');
+        return view('livewire.host.session-create', [
+            'puzzleCounts' => config('cryptodungeon.puzzles_by_difficulty'),
+        ]);
     }
 }

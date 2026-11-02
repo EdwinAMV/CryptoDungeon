@@ -2,7 +2,7 @@
     <div class="panel text-center">
         <p class="text-sm font-semibold uppercase tracking-widest text-amber-300">Ya estás dentro</p>
         <h1 class="mt-4 text-3xl font-bold">Hola, {{ $participant->display_name }}</h1>
-        <p class="mt-3 text-slate-400">Sesión <span class="font-mono text-slate-200">{{ $game->code }}</span> · {{ $game->duration_minutes }} minutos</p>
+        <p class="mt-3 text-slate-400">Sala <span class="font-mono text-slate-200">{{ $game->code }}</span> · {{ ['easy' => 'Fácil', 'normal' => 'Normal', 'hard' => 'Difícil'][$game->difficulty] }}</p>
         <div class="my-7 rounded-xl border border-amber-800 bg-amber-950/30 p-5">
             <p class="font-semibold text-amber-200">Esperando al anfitrión</p>
             <p class="mt-2 text-sm text-slate-400">Mantén esta página abierta. Tu plaza está guardada en este navegador.</p>

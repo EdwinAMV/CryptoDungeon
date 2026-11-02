@@ -6,13 +6,21 @@ Está pensada para utilizarse en el aula: una persona crea la sala y organiza la
 
 ## Cómo se juega
 
-1. El anfitrión crea una sala, elige la dificultad y establece su duración. En modo por equipos, crea los grupos.
+1. El anfitrión crea una sala y elige la dificultad: fácil (5 acertijos), normal (10) o difícil (15). En modo por equipos, crea los grupos.
 2. Los alumnos se unen con un código de acceso de seis cifras y un nombre o alias.
-3. Los participantes esperan en un lobby hasta que el anfitrión inicia la partida.
+3. El anfitrión inicia la partida cuando hay al menos dos jugadores conectados en individual o al menos dos equipos, cada uno con un jugador conectado.
 4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
-5. Las pistas ayudan a superar los desafíos a cambio de puntos. Al terminar, se muestran los resultados.
+5. Cada respuesta correcta abre la siguiente habitación y suma 100 puntos al equipo. La partida termina cuando todos han completado el recorrido.
 
-La experiencia está diseñada alrededor de cinco habitaciones conectadas por un recorrido válido. Los desafíos utilizan cifrados clásicos como **César, Atbash y Vigenère**, con frases y parámetros variables entre partidas.
+La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habitaciones conectadas, según la dificultad. Todos incluyen **Cifrado César, Cifrado de Sustitución Simple y Cifrado de Vigenère**, con frases y claves variables entre partidas.
+
+## Generación de acertijos
+
+Al iniciar una partida, el servidor combina plantillas de frases de la mazmorra con listas de palabras compatibles. Por ejemplo, «LA LLAVE DE ORO ABRE LA PUERTA DEL ARCHIVO» puede variar el material y el lugar sin perder coherencia. Las plantillas están en `resources/data/phrases.php`.
+
+Se seleccionan frases distintas y se reparten los tres cifrados de forma equilibrada. César usa un desplazamiento aleatorio; Sustitución Simple, un alfabeto permutado sin letras que permanezcan en su posición; Vigenère, una clave del banco de palabras. Las ayudas de cada algoritmo se muestran junto al mensaje.
+
+La generación se realiza una sola vez: todos los equipos reciben los mismos desafíos y cada equipo tiene su propio progreso. Las soluciones se guardan cifradas y la validación se hace en el backend; el navegador recibe el mensaje cifrado y sus parámetros de resolución. La respuesta admite diferencias de tildes, mayúsculas, espacios y puntuación.
 
 ## Objetivo educativo
 
@@ -24,9 +32,7 @@ El control de la sala se conserva en la sesión del navegador de quien la crea. 
 
 ## Estado del proyecto
 
-Actualmente están implementados la creación de salas sin cuenta, la configuración de dificultad y duración, la gestión de grupos por el creador, el acceso de alumnos con código y los lobbies con actualización periódica.
-
-La exploración de la mazmorra, los acertijos, las pistas, la puntuación y los resultados están en desarrollo. La descripción del juego recoge la experiencia prevista.
+Están implementados las salas sin cuenta, las dificultades por cantidad de acertijos, la gestión de grupos, el acceso con código, el inicio de partida, el mapa 2D, los tres cifrados, la validación de respuestas, el progreso independiente y el seguimiento de puntuaciones mediante polling. No hay temporizador ni sistema de pistas con penalizaciones.
 
 ## Tecnologías
 
@@ -35,7 +41,7 @@ La exploración de la mazmorra, los acertijos, las pistas, la puntuación y los 
 | Backend | PHP y Laravel |
 | Interfaz | Blade, Livewire y Alpine.js |
 | Estilos y mapa 2D | Tailwind CSS y CSS Grid |
-| Base de datos | SQLite, con configuración disponible para MariaDB |
+| Base de datos | SQLite en local; PostgreSQL de Neon en Vercel |
 | Seguimiento de sesiones | Polling con Livewire |
 | Entorno local | Laravel Herd |
 
