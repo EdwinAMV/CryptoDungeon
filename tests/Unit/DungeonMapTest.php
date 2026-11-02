@@ -19,6 +19,9 @@ class DungeonMapTest extends TestCase
                 ], $layout['rooms']);
                 $map = (new DungeonMapPresenter)->present($tiles);
                 $this->assertCount($count - 1, $map['corridors']);
+                $this->assertSame('Salida', $map['rooms'][$count - 1]['name']);
+                $this->assertSame('exit', $map['rooms'][$count - 1]['decoration']);
+                $this->assertSame(['Salida'], array_values(array_filter(array_column($map['rooms'], 'name'), fn ($name) => $name === 'Salida')));
                 foreach ($map['rooms'] as $index => $room) {
                     $this->assertGreaterThanOrEqual(0, $room['left']);
                     $this->assertGreaterThanOrEqual(0, $room['top']);

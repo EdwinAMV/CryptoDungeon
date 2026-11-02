@@ -12,11 +12,11 @@ Está pensada para utilizarse en el aula: una persona crea la sala y organiza la
 4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
 5. Cada respuesta correcta abre la siguiente habitación y suma hasta 100 puntos al equipo: cada fallo previo en esa habitación resta 10, sin límite inferior. La partida termina cuando todos han completado el recorrido.
 
-El plano representa salas de piedra conectadas por pasillos rectos. Cada jugador tiene su propia ficha y puede volver a una sala contigua abierta pulsándola. Al resolver un acertijo, quien responde avanza a la siguiente habitación; sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
+El plano representa salas de piedra conectadas por pasillos rectos. La última habitación siempre se llama «Salida», también en partidas existentes, y conserva su acertijo final. Cada jugador tiene su propia ficha y puede volver a una sala contigua abierta pulsándola. Al resolver un acertijo, quien responde avanza a la siguiente habitación; sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
 
 El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Cada jugador conserva un color propio, asignado al azar y distinto de los de sus compañeros; el borde de la ficha identifica el grupo. Las fichas atenuadas indican jugadores sin señal reciente.
 
-Solo el anfitrión dispone del botón «Activar ambiente», que reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música es opcional y se inicia al pulsar el botón. Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
+Solo el anfitrión dispone del botón «Activar ambiente», que reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música intenta iniciarse automáticamente en la pantalla del anfitrión y mantiene los controles de pausa y volumen. Si el navegador exige interacción para reproducir sonido, vuelve a intentarlo con el primer clic o pulsación de tecla en la página, o mediante «Activar ambiente». Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
 
 La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habitaciones conectadas, según la dificultad. Todos incluyen **Cifrado César, Cifrado de Sustitución Simple y Cifrado de Vigenère**, con frases y claves variables entre partidas.
 
@@ -38,7 +38,7 @@ Al crear una sala, el servidor combina plantillas de frases de la mazmorra con l
 
 Se seleccionan frases distintas y se reparten los tres cifrados de forma equilibrada. César usa un desplazamiento aleatorio; Sustitución Simple, un alfabeto permutado sin letras que permanezcan en su posición; Vigenère, una clave del banco de palabras. Las ayudas de cada algoritmo se muestran junto al mensaje.
 
-La generación se realiza una sola vez y se conserva al iniciar la partida: todos los equipos reciben los mismos desafíos y cada equipo tiene su propio progreso. Las soluciones se guardan cifradas y la validación se hace en el backend; el navegador del jugador recibe el mensaje cifrado y sus parámetros de resolución. Solo el anfitrión puede descargar las soluciones mediante el endpoint protegido del TXT. La respuesta admite diferencias de tildes, mayúsculas, espacios y puntuación.
+La generación se realiza una sola vez y se conserva al iniciar la partida: todos los equipos reciben los mismos desafíos y cada equipo tiene su propio progreso. Las soluciones se guardan cifradas y la validación se hace en el backend; el navegador del jugador recibe el mensaje cifrado y sus parámetros de resolución. Solo el anfitrión puede descargar las soluciones mediante el endpoint protegido del TXT. La respuesta admite diferencias de tildes, mayúsculas, espacios y puntuación. El bloque del mensaje cifrado impide seleccionar, copiar y arrastrar el texto desde la interfaz, sin afectar al campo de respuesta ni al chat. Esta medida disuade la copia directa; no impide capturas, OCR o la inspección del navegador.
 
 ## Objetivo educativo
 

@@ -10,17 +10,18 @@ class DungeonMapPresenter
         $names = ['Entrada', 'Galería', 'Archivo', 'Sala de runas', 'Cripta', 'Armería', 'Biblioteca', 'Santuario', 'Cámara del eco', 'Observatorio', 'Sala del guardián', 'Taller', 'Cámara de cristal', 'Sala del portal', 'Tesoro'];
         usort($tiles, fn ($left, $right) => $left['position'] <=> $right['position']);
 
-        foreach ($tiles as $tile) {
+        foreach ($tiles as $index => $tile) {
+            $isExit = $index === count($tiles) - 1;
             $width = $tile['position'] % 3 === 0 ? 10 : 8;
             $height = $tile['position'] % 4 === 0 ? 8 : 6;
             $centerX = 9 + $tile['x'] * 14;
             $centerY = 8 + $tile['y'] * 12;
             $rooms[] = [
                 ...$tile,
-                'name' => $names[($tile['position'] - 1) % count($names)],
+                'name' => $isExit ? 'Salida' : $names[($tile['position'] - 1) % count($names)],
                 'left' => $centerX - $width / 2, 'top' => $centerY - $height / 2,
                 'width' => $width, 'height' => $height, 'center_x' => $centerX, 'center_y' => $centerY,
-                'decoration' => ['altar', 'library', 'crystals', 'table'][($tile['position'] - 1) % 4],
+                'decoration' => $isExit ? 'exit' : ['altar', 'library', 'crystals', 'table'][($tile['position'] - 1) % 4],
                 'players' => array_values(array_filter($players, fn ($player) => $player['room_id'] === $tile['id'])),
             ];
         }
