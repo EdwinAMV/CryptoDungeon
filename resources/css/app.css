@@ -39,6 +39,7 @@
 .map-zoom:hover { background: #373531; }
 .map-zoom:focus-visible, .dungeon-room-action:focus-visible, .player-token:focus-visible { outline: 2px solid #fcd34d; outline-offset: 3px; }
 .dungeon-viewport {
+    --map-unit: 12px;
     overflow: auto;
     max-height: 65vh;
     min-height: 240px;
@@ -47,7 +48,6 @@
     scrollbar-color: #79634e #1c2328;
 }
 .dungeon-plan {
-    --map-unit: 12px;
     position: relative;
     display: grid;
     grid-template-columns: repeat(var(--map-width), var(--map-unit));

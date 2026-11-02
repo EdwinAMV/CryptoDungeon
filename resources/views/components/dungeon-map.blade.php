@@ -11,8 +11,8 @@
             <button type="button" @click="zoom = Math.min(1.6, zoom + .2)" class="map-zoom" aria-label="Acercar mapa">+</button>
         </div>
     </div>
-    <div class="dungeon-viewport" tabindex="0" aria-label="Mapa desplazable de salas y pasillos">
-        <div class="dungeon-plan" :style="'--map-unit: ' + (12 * zoom) + 'px'" style="--map-width: {{ $map['width'] }}; --map-height: {{ $map['height'] }}">
+    <div class="dungeon-viewport" :style="{ '--map-unit': (12 * zoom) + 'px' }" tabindex="0" aria-label="Mapa desplazable de salas y pasillos">
+        <div class="dungeon-plan" style="--map-width: {{ $map['width'] }}; --map-height: {{ $map['height'] }}">
             <span class="map-compass" aria-hidden="true">N<br>↑</span>
             @foreach ($map['corridors'] as $index => $corridor)
                 <div wire:key="corridor-{{ $index }}" @class(['dungeon-corridor', 'is-open' => $corridor['open']])

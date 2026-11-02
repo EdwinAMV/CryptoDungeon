@@ -16,7 +16,7 @@ El plano representa salas de piedra conectadas por pasillos rectos. Cada jugador
 
 El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Los colores identifican los grupos y las fichas atenuadas indican jugadores sin señal reciente.
 
-El botón «Activar ambiente» reproduce una composición original incluida en `public/audio`, con pausa y control de volumen. La música es opcional y se inicia al pulsar el botón. Para cambiarla, sustituye el archivo por una pista propia o cuya licencia permita distribuirla en la aplicación; consulta [los detalles del audio](public/audio/README.md).
+El botón «Activar ambiente» reproduce al azar las pistas incluidas en `public/audio`, con pausa y control de volumen. Al terminar una pista, elige otra sin repetir inmediatamente la anterior. La música es opcional y se inicia al pulsar el botón. Para cambiarla, añade o elimina archivos de audio y vuelve a desplegar; consulta [los detalles del audio](public/audio/README.md).
 
 La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habitaciones conectadas, según la dificultad. Todos incluyen **Cifrado César, Cifrado de Sustitución Simple y Cifrado de Vigenère**, con frases y claves variables entre partidas.
 
