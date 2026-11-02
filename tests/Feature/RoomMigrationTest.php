@@ -56,6 +56,13 @@ class RoomMigrationTest extends TestCase
             $this->assertSame(3, DB::table('game_sessions')->count());
             $this->assertTrue(Schema::hasTable('rooms'));
             $this->assertTrue(Schema::hasTable('team_room_progress'));
+
+            (require database_path('migrations/2026_11_02_000003_add_participant_room_positions.php'))->up();
+            $this->assertTrue(Schema::hasColumn('participants', 'current_room_id'));
+            $this->assertSame('Ana', DB::table('participants')->where('team_id', $team)->value('display_name'));
+            $this->assertNull(DB::table('participants')->where('team_id', $team)->value('current_room_id'));
+            $this->assertSame(3, DB::table('game_sessions')->count());
+            $this->assertSame([], DB::select('PRAGMA foreign_key_check'));
         } finally {
             DB::purge('migration_test');
             DB::setDefaultConnection($originalConnection);

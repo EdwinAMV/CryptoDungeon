@@ -4,7 +4,9 @@ namespace App\Livewire\Player;
 
 use App\Enums\GameStatus;
 use App\Models\Participant;
+use App\Services\DungeonMapService;
 use App\Services\GameService;
+use App\Services\ParticipantPosition;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -51,6 +53,14 @@ class Lobby extends Component
         };
     }
 
+    public function moveTo(int $roomId, GameService $games): void
+    {
+        $games->moveParticipant($this->participant(), $roomId);
+        $this->answer = '';
+        $this->feedback = '';
+        $this->resetValidation();
+    }
+
     public function render()
     {
         // Identity comes only from the browser session, never a client-supplied ID.
@@ -59,22 +69,33 @@ class Lobby extends Component
         $game = $participant->team->gameSession;
 
         if ($game->status !== GameStatus::Lobby) {
-            $progress = $participant->team->progress()->with('room')->get();
-            $current = $progress->first(fn ($step) => $step->unlocked_at && ! $step->solved_at);
+            $progress = $participant->team->progress()->with('room')->orderBy('id')->get();
+            $location = app(ParticipantPosition::class)->ensure($participant, $progress);
+            $selected = $progress->firstWhere('room_id', $location);
+            $current = $selected && ! $selected->solved_at ? $selected : null;
             if ($this->roomId !== $current?->room_id) {
                 $this->roomId = $current?->room_id;
                 $this->answer = '';
                 $this->resetValidation();
             }
 
+            $tiles = $progress->map(fn ($step) => [
+                'id' => $step->room_id, 'position' => $step->room->position,
+                'x' => $step->room->grid_x, 'y' => $step->room->grid_y,
+                'state' => $step->solved_at ? 'solved' : ($step->unlocked_at ? 'current' : 'locked'),
+                'selected' => $step->room_id === $location,
+                'can_move' => $step->unlocked_at && $selected && abs($step->room->position - $selected->room->position) === 1,
+            ])->all();
+            $next = $progress->first(fn ($step) => $step->unlocked_at && ! $step->solved_at);
+
             return view('livewire.player.dungeon', [
                 'participant' => $participant,
                 'game' => $game,
                 'puzzle' => $current?->room->publicPuzzle(),
-                'tiles' => $progress->map(fn ($step) => [
-                    'position' => $step->room->position, 'x' => $step->room->grid_x, 'y' => $step->room->grid_y,
-                    'state' => $step->solved_at ? 'solved' : ($step->unlocked_at ? 'current' : 'locked'),
-                ])->all(),
+                'tiles' => $tiles,
+                'map' => app(DungeonMapService::class)->forPlayer($participant, $tiles),
+                'selectedPosition' => $selected?->room->position,
+                'nextPosition' => $next?->room->position,
                 'solvedCount' => $progress->whereNotNull('solved_at')->count(),
                 'score' => $progress->sum('awarded_points'),
                 'standings' => $game->teams()->withSum('progress as score', 'awarded_points')

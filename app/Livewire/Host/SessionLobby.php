@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Host;
 
+use App\Enums\GameStatus;
 use App\Models\GameSession;
+use App\Services\DungeonMapService;
 use App\Services\GameService;
 use App\Services\PuzzleGenerator;
 use Illuminate\Support\Facades\Gate;
@@ -54,6 +56,7 @@ class SessionLobby extends Component
             'game' => $game,
             'startBlockReason' => app(GameService::class)->startBlockReason($game),
             'puzzleCount' => app(PuzzleGenerator::class)->countForDifficulty($game->difficulty),
+            'map' => $game->status !== GameStatus::Lobby ? app(DungeonMapService::class)->forHost($game) : null,
         ]);
     }
 }

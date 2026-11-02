@@ -25,3 +25,79 @@
         @apply inline-flex items-center justify-center rounded-lg border border-slate-600 px-5 py-3 text-sm font-bold transition hover:border-amber-300 hover:text-amber-300;
     }
 }
+
+[x-cloak] { display: none !important; }
+
+.dungeon-atlas {
+    overflow: hidden;
+    border: 1px solid #8a71553d;
+    border-radius: 1rem;
+    background: #181c21;
+    box-shadow: 0 15px 50px #0003, inset 0 0 50px #0002;
+}
+.map-zoom { width: 2rem; height: 2rem; border: 1px solid #a68c6a55; border-radius: .4rem; color: #f5dba8; background: #282a2d; }
+.map-zoom:hover { background: #373531; }
+.map-zoom:focus-visible, .dungeon-room-action:focus-visible, .player-token:focus-visible { outline: 2px solid #fcd34d; outline-offset: 3px; }
+.dungeon-viewport {
+    overflow: auto;
+    max-height: 65vh;
+    min-height: 240px;
+    padding: 1.5rem;
+    background: radial-gradient(ellipse at center, #34352e 0%, #1c2328 60%, #131b23 100%);
+    scrollbar-color: #79634e #1c2328;
+}
+.dungeon-plan {
+    --map-unit: 12px;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--map-width), var(--map-unit));
+    grid-template-rows: repeat(var(--map-height), var(--map-unit));
+    width: calc(var(--map-width) * var(--map-unit));
+    height: calc(var(--map-height) * var(--map-unit));
+    margin: 0 auto;
+    isolation: isolate;
+}
+.map-compass { position: absolute; right: .2rem; top: .2rem; text-align: center; color: #d1c09b77; font-family: Georgia, serif; font-size: 1rem; line-height: 1.2; }
+.dungeon-room, .dungeon-corridor {
+    grid-column: calc(var(--x) + 1) / span var(--w);
+    grid-row: calc(var(--y) + 1) / span var(--h);
+    position: relative;
+    background-color: #706d5c;
+    background-image: linear-gradient(90deg, #262b2966 1px, transparent 1px), linear-gradient(#262b2966 1px, transparent 1px), repeating-linear-gradient(45deg, #b5a17c0b 0 3px, transparent 3px 7px);
+    background-size: var(--map-unit) var(--map-unit), var(--map-unit) var(--map-unit), auto;
+}
+.dungeon-corridor { z-index: 0; border: 4px solid #343834; box-shadow: 0 0 0 2px #171e22, inset 0 0 14px #0007; filter: brightness(.7); }
+.dungeon-corridor.is-open { filter: none; }
+.dungeon-room {
+    z-index: 1;
+    border: 5px solid #484a42;
+    outline: 2px solid #181f22;
+    box-shadow: inset 0 0 0 2px #a5a08455, inset 0 0 22px #111c, 3px 5px 8px #0007;
+    transition: filter .3s, box-shadow .3s;
+}
+.dungeon-room.is-locked { filter: saturate(.3) brightness(.58); }
+.dungeon-room.is-solved { border-color: #556552; background-color: #6b7660; }
+.dungeon-room.is-current { border-color: #9c8151; }
+.dungeon-room.is-selected { box-shadow: 0 0 0 2px #f0c46a, 0 0 20px #eeb55435, inset 0 0 18px #111a; }
+.dungeon-room-action { position: absolute; inset: 0; z-index: 4; cursor: pointer; }
+.dungeon-room-action:disabled { cursor: default; }
+.dungeon-room-action:not(:disabled):hover { background: #ffe9ad16; }
+.dungeon-room-label { position: absolute; left: 50%; top: calc(-1.8 * var(--map-unit)); transform: translateX(-50%); z-index: 6; white-space: nowrap; font-size: calc(.75 * var(--map-unit)); letter-spacing: .03em; color: #f2dfb8; text-shadow: 0 2px 3px #000; background: #131c23db; border: 1px solid #77644860; border-radius: .2rem; padding: 2px 5px; pointer-events: none; }
+.dungeon-door { position: absolute; z-index: 3; left: calc(var(--x) * var(--map-unit)); top: calc(var(--y) * var(--map-unit)); width: calc(var(--w) * var(--map-unit)); height: calc(var(--h) * var(--map-unit)); border: 2px solid #30251d; background: repeating-linear-gradient(90deg, #6e4930 0 4px, #a07845 4px 5px); box-shadow: 0 1px 4px #0009; pointer-events: none; }
+.dungeon-door.is-open { background: #947a4d; border-color: #56472b; opacity: .7; }
+.dungeon-torch { position: absolute; z-index: 2; top: 5%; width: 5px; height: 7px; border-radius: 50% 50% 30% 30%; background: #ffcf6c; box-shadow: 0 0 8px 3px #f4ac4a88, 0 0 23px 10px #e7a74333; animation: torch-glow 3s ease-in-out infinite alternate; pointer-events: none; }
+.torch-left { left: 8%; }
+.torch-right { right: 8%; animation-delay: -1.5s; }
+.dungeon-room.is-locked .dungeon-torch { animation: none; box-shadow: none; background: #6e6b59; }
+.dungeon-prop { position: absolute; z-index: 1; left: 50%; top: 58%; transform: translate(-50%, -50%); pointer-events: none; }
+.prop-altar { width: 35%; height: 26%; border: 3px solid #333d3c; background: linear-gradient(135deg, #8b9d92, #4e6967); box-shadow: 0 3px 0 #243732, 0 0 12px #73d3bb33; }
+.prop-library { width: 70%; height: 15%; top: 78%; border: 2px solid #493628; background: repeating-linear-gradient(90deg, #6c5741 0 3px, #b49c63 3px 5px, #7b514d 5px 7px); box-shadow: 0 3px 0 #30281f; }
+.prop-crystals { width: 20%; height: 26%; background: linear-gradient(135deg, #c5dce7 0 25%, #6488a5 25% 55%, #385a7b 55%); clip-path: polygon(50% 0, 100% 55%, 60% 100%, 10% 65%); filter: drop-shadow(0 0 5px #7da8d8); }
+.prop-table { width: 45%; height: 30%; border: 3px solid #49392c; background: repeating-linear-gradient(0deg, #826545 0 5px, #725738 5px 6px); box-shadow: 0 3px 0 #30251d; }
+.dungeon-tokens { position: absolute; inset: 20% 5% 8%; z-index: 5; display: flex; align-content: center; justify-content: center; flex-wrap: wrap; gap: calc(.2 * var(--map-unit)); pointer-events: none; }
+.player-token { --token-color: #b5d6c2; width: calc(1.1 * var(--map-unit)); height: calc(1.1 * var(--map-unit)); display: inline-flex; flex: 0 0 auto; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid #f8f1dc; background: var(--token-color); color: #17222c; font-size: calc(.6 * var(--map-unit)); font-weight: 900; box-shadow: 0 2px 5px #000a; pointer-events: auto; }
+.player-token.is-self { outline: 2px solid #ffd678; outline-offset: 2px; }
+.player-token.is-away { opacity: .45; border-style: dashed; }
+.token-count { background: #242d36; color: #ffe4ad; font-size: 8px; }
+@keyframes torch-glow { from { opacity: .7; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dungeon-torch { animation: none; } .dungeon-room { transition: none; } }

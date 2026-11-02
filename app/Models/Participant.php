@@ -18,4 +18,9 @@ class Participant extends Model
     {
         return $this->belongsTo(Team::class);
     }
+
+    public function currentRoom(): BelongsTo
+    {
+        return $this->belongsTo(Room::class, 'current_room_id');
+    }
 }

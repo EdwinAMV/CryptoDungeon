@@ -12,6 +12,12 @@ Está pensada para utilizarse en el aula: una persona crea la sala y organiza la
 4. Cada equipo resuelve los acertijos de las habitaciones y avanza por su propio recorrido.
 5. Cada respuesta correcta abre la siguiente habitación y suma 100 puntos al equipo. La partida termina cuando todos han completado el recorrido.
 
+El plano representa salas de piedra conectadas por pasillos rectos. Cada jugador tiene su propia ficha y puede volver a una sala contigua abierta pulsándola. Al resolver un acertijo, quien responde avanza a la siguiente habitación; sus compañeros conservan su ubicación y comparten los desbloqueos del equipo.
+
+El anfitrión ve las posiciones de todos los jugadores en su pantalla, actualizadas cada tres segundos. Cada participante ve las fichas de su propio equipo. Los colores identifican los grupos y las fichas atenuadas indican jugadores sin señal reciente.
+
+El botón «Activar ambiente» reproduce una composición original incluida en `public/audio`, con pausa y control de volumen. La música es opcional y se inicia al pulsar el botón. Para cambiarla, sustituye el archivo por una pista propia o cuya licencia permita distribuirla en la aplicación; consulta [los detalles del audio](public/audio/README.md).
+
 La partida no tiene límite de tiempo. Los recorridos contienen 5, 10 o 15 habitaciones conectadas, según la dificultad. Todos incluyen **Cifrado César, Cifrado de Sustitución Simple y Cifrado de Vigenère**, con frases y claves variables entre partidas.
 
 ## Generación de acertijos

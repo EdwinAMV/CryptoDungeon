@@ -79,6 +79,8 @@ Las migraciones se ejecutan antes de activar el nuevo despliegue. Los futuros ca
 
 No se ejecutan migraciones desde las peticiones de los alumnos ni desde el polling. Los archivos temporales de `/tmp` contienen vistas compiladas y manifiestos del framework; el estado de juego y las sesiones se guardan en Neon.
 
+Las posiciones de los jugadores se guardan en `participants.current_room_id`. La migración añade un campo nullable y conserva las partidas existentes; su ubicación se inicializa al volver a entrar. El mapa del anfitrión utiliza el polling de tres segundos. El build también publica `public/audio` como archivos estáticos para la música ambiental, sin variables nuevas ni servicios externos.
+
 ## Preview y Production
 
 Usa una rama/base de Neon distinta para las previews, con sus propias variables `DB_URL` y `APP_KEY`. Su URL se detecta automáticamente. **Cada build configurado ejecuta migraciones contra su conexión**: una preview no debe apuntar a la base de producción.

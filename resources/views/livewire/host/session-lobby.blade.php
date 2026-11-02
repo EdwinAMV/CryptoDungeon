@@ -1,5 +1,12 @@
 <div wire:poll.3s>
     <a href="{{ route('rooms.index') }}" class="text-sm text-slate-400 hover:text-white">← Mis salas</a>
+    @if ($map)
+        <div class="my-5 flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-2xl font-bold">Vista del anfitrión</h1>
+            <x-background-music />
+        </div>
+        <x-dungeon-map :map="$map" title="La expedición en vivo" />
+    @endif
     <div class="my-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
         <section class="panel text-center">
             <h1 class="text-xl font-bold">Lobby de la sala</h1>

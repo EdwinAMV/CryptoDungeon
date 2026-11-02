@@ -19,7 +19,7 @@ const output = resolve(projectRoot, 'dist');
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
 
-for (const asset of ['build', 'favicon.ico', 'robots.txt']) {
+for (const asset of ['build', 'audio', 'favicon.ico', 'robots.txt']) {
     const source = resolve(projectRoot, 'public', asset);
     if (existsSync(source)) {
         cpSync(source, resolve(output, asset), { recursive: true });

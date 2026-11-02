@@ -7,20 +7,11 @@
         <p aria-live="polite">{{ $solvedCount }} / {{ count($tiles) }} habitaciones · {{ $score }} puntos</p>
     </header>
 
-    <div class="grid gap-6 lg:grid-cols-[1fr_2fr]">
-        <section class="panel">
-            <h2 class="text-xl font-bold">Tu recorrido</h2>
-            <p class="mt-2 text-sm text-slate-400">Resuelve las habitaciones en orden. Las verdes ya están abiertas.</p>
-            <div class="mt-5 grid gap-2" style="grid-template-columns: repeat({{ $game->map_layout['columns'] ?? 1 }}, minmax(0, 1fr))" aria-label="Mapa de la mazmorra">
-                @foreach ($tiles as $tile)
-                    <div wire:key="tile-{{ $tile['position'] }}" style="grid-column: {{ $tile['x'] + 1 }}; grid-row: {{ $tile['y'] + 1 }}"
-                        @class(['flex aspect-square items-center justify-center rounded-lg border text-lg font-bold', 'border-emerald-500 bg-emerald-950 text-emerald-200' => $tile['state'] === 'solved', 'border-amber-300 bg-amber-300 text-slate-950' => $tile['state'] === 'current', 'border-slate-700 bg-slate-950 text-slate-500' => $tile['state'] === 'locked'])
-                        aria-label="Habitación {{ $tile['position'] }}: {{ ['solved' => 'resuelta', 'current' => 'actual', 'locked' => 'cerrada'][$tile['state']] }}">{{ $tile['position'] }}</div>
-                @endforeach
-            </div>
-        </section>
+    <x-background-music />
+    @error('movement')<p role="alert" class="rounded-xl bg-red-950 p-4 text-red-200">{{ $message }}</p>@enderror
+    <x-dungeon-map :map="$map" title="Tu expedición" />
 
-        <section class="panel">
+    <section class="panel">
             @if ($feedback)<p role="status" class="mb-5 rounded-lg bg-emerald-950 p-3 text-emerald-200">{{ $feedback }}</p>@endif
             @if ($puzzle && $game->status === \App\Enums\GameStatus::Active)
                 <div wire:key="puzzle-{{ $puzzle['id'] }}">
@@ -47,12 +38,14 @@
                         <button class="btn-primary" wire:loading.attr="disabled" wire:target="submit">Comprobar respuesta</button>
                     </form>
                 </div>
+            @elseif ($nextPosition !== null)
+                <h2 class="text-2xl font-bold text-amber-200">Habitación {{ $selectedPosition }} completada</h2>
+                <p class="mt-4 text-slate-300">Tu equipo ya ha descifrado este mensaje. Avanza por las salas abiertas del mapa hasta la habitación {{ $nextPosition }} para continuar.</p>
             @else
                 <h2 class="text-2xl font-bold text-emerald-300">{{ $game->status === \App\Enums\GameStatus::Finished ? '¡Partida completada!' : '¡Habéis salido de la mazmorra!' }}</h2>
                 <p class="mt-4 text-slate-300">{{ $game->status === \App\Enums\GameStatus::Finished ? 'Todos los equipos han terminado su recorrido.' : 'Vuestro recorrido está completo. Los demás equipos pueden seguir resolviendo sus mensajes.' }}</p>
             @endif
-        </section>
-    </div>
+    </section>
 
     <section class="panel">
         <h2 class="mb-4 text-xl font-bold">Progreso de los equipos</h2>
