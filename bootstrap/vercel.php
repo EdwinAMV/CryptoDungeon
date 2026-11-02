@@ -4,6 +4,22 @@
 // public/index.php, artisan and Herd retain Laravel's normal local settings.
 $temporaryPath = sys_get_temp_dir().'/cryptodungeon';
 
+$environment = static fn (string $name) => $_ENV[$name] ?? $_SERVER[$name] ?? getenv($name);
+
+// Prefer the stable production domain, but keep previews on their own URL.
+// These values come from Vercel, never from a client-controlled Host header.
+if (! is_string($environment('APP_URL')) || trim($environment('APP_URL')) === '') {
+    $domain = $environment('VERCEL_ENV') === 'production'
+        ? ($environment('VERCEL_PROJECT_PRODUCTION_URL') ?: $environment('VERCEL_URL'))
+        : $environment('VERCEL_URL');
+
+    if (is_string($domain) && filter_var($domain, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)) {
+        $url = 'https://'.$domain;
+        putenv('APP_URL='.$url);
+        $_ENV['APP_URL'] = $_SERVER['APP_URL'] = $url;
+    }
+}
+
 $defaults = [
     'APP_ENV' => 'production',
     'APP_DEBUG' => 'false',

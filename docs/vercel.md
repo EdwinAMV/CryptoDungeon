@@ -25,12 +25,14 @@ Mantén activada la opción **Automatically expose System Environment Variables*
 | --- | --- |
 | Root Directory | La raíz del proyecto, donde están `composer.json` y `vercel.json` |
 | Framework Preset | **Other** |
-| Node.js Version | **26.x**, compatible con `package.json` |
+| Node.js Version | Detectada mediante `engines.node` en `package.json` (**26.x**) |
 | Install Command | `npm ci --ignore-scripts` |
 | Build Command | `npm run build:vercel` |
 | Output Directory | `dist` |
 
 El build de Node compila Vite y copia únicamente los recursos públicos permitidos a `dist`. La función `api/index.php` atiende las rutas de Laravel, incluyendo las peticiones de Livewire y el polling. La salida estática no contiene PHP, archivos `.env`, bases SQLite ni enlaces al servidor Vite local.
+
+No selecciones Node.js como framework: el preset es **Other**. El selector de versión de Node puede no aparecer en la pantalla de importación; `package.json` ya declara la versión. Si necesitas consultarlo después, está en los ajustes de build del proyecto.
 
 El runtime PHP instala las dependencias de Composer y ejecuta el script `vercel` definido en `composer.json`. No uses `composer run setup` como comando de Vercel: ese comando está pensado para una instalación local.
 
@@ -44,7 +46,7 @@ En **Settings → Environment Variables**, configura estas variables para **Prod
 | `APP_ENV` | `production` |
 | `APP_DEBUG` | `false` |
 | `APP_LOCALE` | `es` |
-| `APP_URL` | `https://tu-proyecto.vercel.app`, o tu dominio final |
+| `APP_URL` | Opcional: se detecta automáticamente; omítela para usar el dominio de Vercel |
 | `APP_KEY` | Una clave nueva de producción con prefijo `base64:` |
 | `DB_CONNECTION` | `pgsql` |
 | `DB_URL` | Conexión pooled de Neon con SSL |
@@ -60,6 +62,8 @@ Para obtener una clave nueva, ejecuta en tu terminal:
 ```sh
 php artisan key:generate --show
 ```
+
+La detección de URL usa `VERCEL_PROJECT_PRODUCTION_URL` en producción y `VERCEL_URL` en previews, añadiendo `https://`. En producción, si no existe el dominio estable, utiliza el del despliegue. No necesitas publicar primero y volver a editar `APP_URL`. Una `APP_URL` definida manualmente tiene prioridad sobre la detección automática.
 
 `--show` muestra una clave nueva sin modificar la clave de tu `.env` local. Copia el resultado a `APP_KEY` en Vercel y consérvalo entre despliegues. Cambiarlo invalida las cookies existentes y puede hacer perder el acceso de los anfitriones a sus salas.
 
@@ -77,7 +81,7 @@ No se ejecutan migraciones desde las peticiones de los alumnos ni desde el polli
 
 ## Preview y Production
 
-Usa una rama/base de Neon distinta para las previews, con sus propias variables `DB_URL`, `APP_URL` y `APP_KEY`. **Cada build configurado ejecuta migraciones contra su conexión**: una preview no debe apuntar a la base de producción.
+Usa una rama/base de Neon distinta para las previews, con sus propias variables `DB_URL` y `APP_KEY`. Su URL se detecta automáticamente. **Cada build configurado ejecuta migraciones contra su conexión**: una preview no debe apuntar a la base de producción.
 
 Si todavía no tienes una base para previews, configura solo Production. Los builds de preview sin las variables necesarias fallarán de forma explícita; no se cambiará a SQLite temporal para ocultar el problema.
 

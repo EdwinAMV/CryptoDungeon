@@ -31,7 +31,7 @@ try {
     }
 
     if (! filter_var(config('app.url'), FILTER_VALIDATE_URL) || ! str_starts_with(config('app.url'), 'https://')) {
-        throw new RuntimeException('Configura APP_URL con el dominio HTTPS de este entorno.');
+        throw new RuntimeException('Activa las variables de sistema de Vercel para detectar la URL, o configura APP_URL con un dominio HTTPS.');
     }
 
     if (config('database.default') !== 'pgsql' || ! config('database.connections.pgsql.url')) {

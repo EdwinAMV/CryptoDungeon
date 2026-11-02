@@ -34,7 +34,8 @@ class VercelBuildTest extends TestCase
         $process = new Process([PHP_BINARY, base_path('scripts/vercel-build.php')], base_path(), [
             'VERCEL' => '1', 'APP_ENV' => 'production', 'APP_DEBUG' => 'false',
             'APP_KEY' => 'base64:'.base64_encode(random_bytes(32)),
-            'APP_URL' => 'https://cryptodungeon.vercel.app',
+            'APP_URL' => false, 'VERCEL_ENV' => 'production',
+            'VERCEL_PROJECT_PRODUCTION_URL' => 'cryptodungeon.vercel.app',
             'DB_CONNECTION' => 'pgsql', 'DB_URL' => '', 'DATABASE_URL' => '',
             'SESSION_DRIVER' => 'database', 'CACHE_STORE' => 'database',
         ]);
