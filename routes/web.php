@@ -1,33 +1,28 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ParticipantController;
+use App\Livewire\Host\SessionCreate;
+use App\Livewire\Host\SessionLobby;
 use App\Livewire\Player\JoinSession;
 use App\Livewire\Player\Lobby;
-use App\Livewire\Teacher\SessionCreate;
-use App\Livewire\Teacher\SessionLobby;
 use App\Models\GameSession;
+use App\Services\RoomAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
 
-Route::middleware('guest')->group(function () {
-    Route::view('/profesor/acceder', 'auth.login')->name('login');
-    Route::post('/profesor/acceder', [AuthController::class, 'login'])->middleware('throttle:30,1');
-    Route::view('/profesor/registro', 'auth.register')->name('register');
-    Route::post('/profesor/registro', [AuthController::class, 'register'])->middleware('throttle:5,1');
-});
+Route::post('/salir', [ParticipantController::class, 'leave'])->name('player.leave');
 
-Route::post('/salir', [AuthController::class, 'logout'])->name('logout');
-
-Route::middleware('auth')->prefix('profesor')->name('teacher.')->group(function () {
-    Route::get('/sesiones', function () {
-        return view('teacher.sessions', [
-            'sessions' => GameSession::where('teacher_id', auth()->id())
+Route::prefix('salas')->name('rooms.')->group(function () {
+    Route::get('/', function (RoomAccess $access) {
+        return view('host.rooms', [
+            'sessions' => GameSession::whereNotNull('owner_token_hash')
+                ->where('owner_token_hash', $access->ownerHash())
                 ->withCount('participants')->latest()->paginate(12),
         ]);
-    })->name('sessions.index');
-    Route::get('/sesiones/crear', SessionCreate::class)->name('sessions.create');
-    Route::get('/sesiones/{gameSession}/lobby', SessionLobby::class)->name('sessions.lobby');
+    })->name('index');
+    Route::get('/crear', SessionCreate::class)->name('create');
+    Route::get('/{gameSession}/lobby', SessionLobby::class)->name('lobby');
 });
 
 Route::get('/entrar', JoinSession::class)->name('player.join');

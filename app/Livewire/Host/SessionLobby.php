@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Teacher;
+namespace App\Livewire\Host;
 
 use App\Models\GameSession;
 use App\Services\GameService;
@@ -39,6 +39,6 @@ class SessionLobby extends Component
     {
         $game = $this->game()->load(['teams.participants']);
 
-        return view('livewire.teacher.session-lobby', ['game' => $game]);
+        return view('livewire.host.session-lobby', ['game' => $game]);
     }
 }

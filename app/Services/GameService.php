@@ -6,7 +6,6 @@ use App\Enums\GameStatus;
 use App\Models\GameSession;
 use App\Models\Participant;
 use App\Models\Team;
-use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class GameService
 {
-    public function createSession(User $teacher, array $input): GameSession
+    public function createSession(array $input): GameSession
     {
         $data = Validator::make($input, [
             'mode' => ['required', Rule::in(['individual', 'teams'])],
@@ -29,7 +28,7 @@ class GameService
             try {
                 return GameSession::create([
                     ...$data,
-                    'teacher_id' => $teacher->id,
+                    'owner_token_hash' => app(RoomAccess::class)->ownerHash(create: true),
                     'code' => (string) random_int(100000, 999999),
                     'status' => GameStatus::Lobby,
                 ]);

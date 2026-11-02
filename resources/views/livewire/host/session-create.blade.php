@@ -1,7 +1,8 @@
 <section class="panel mx-auto max-w-xl">
-    <a href="{{ route('teacher.sessions.index') }}" class="text-sm text-slate-400 hover:text-white">← Mis sesiones</a>
-    <h1 class="mb-2 mt-5 text-2xl font-bold">Preparar una sesión</h1>
+    <a href="{{ route('rooms.index') }}" class="text-sm text-slate-400 hover:text-white">← Mis salas</a>
+    <h1 class="mb-2 mt-5 text-2xl font-bold">Preparar una sala</h1>
     <p class="mb-6 text-slate-400">El código de acceso se generará al crear el lobby.</p>
+    <p class="mb-6 text-sm text-amber-200">Podrás gestionar esta sala desde este navegador mientras conserves sus cookies. No necesitas una cuenta.</p>
     <x-form-errors />
     <form wire:submit="save" class="space-y-6">
         <div>

@@ -3,12 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\GameStatus;
+use App\Livewire\Host\SessionCreate;
+use App\Livewire\Host\SessionLobby;
 use App\Livewire\Player\JoinSession;
 use App\Livewire\Player\Lobby;
-use App\Livewire\Teacher\SessionCreate;
-use App\Livewire\Teacher\SessionLobby;
 use App\Models\GameSession;
-use App\Models\User;
 use App\Services\GameService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,31 +20,32 @@ class LobbyTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function game(string $mode = 'teams', ?User $teacher = null): GameSession
+    private function game(string $mode = 'teams'): GameSession
     {
-        return app(GameService::class)->createSession($teacher ?? User::factory()->create(), [
+        return app(GameService::class)->createSession([
             'mode' => $mode,
             'difficulty' => 'easy',
             'duration_minutes' => 30,
         ]);
     }
 
-    public function test_teacher_pages_require_authentication(): void
+    public function test_room_pages_are_available_without_an_account(): void
     {
-        $this->get(route('teacher.sessions.index'))->assertRedirect(route('login'));
-        $this->get(route('teacher.sessions.create'))->assertRedirect(route('login'));
+        $this->get(route('rooms.index'))->assertOk();
+        $this->get(route('rooms.create'))->assertOk();
+        $this->assertGuest();
     }
 
-    public function test_teacher_can_create_a_configured_session(): void
+    public function test_host_can_create_a_configured_room_without_an_account(): void
     {
-        $teacher = User::factory()->create();
-
-        Livewire::actingAs($teacher)->test(SessionCreate::class)
+        Livewire::test(SessionCreate::class)
             ->set('mode', 'individual')->set('difficulty', 'normal')->set('durationMinutes', 45)
             ->call('save')->assertHasNoErrors();
 
         $game = GameSession::sole();
-        $this->assertSame($teacher->id, $game->teacher_id);
+        $this->assertNull($game->teacher_id);
+        $this->assertSame(hash('sha256', session('room_owner_token')), $game->owner_token_hash);
+        $this->assertGuest();
         $this->assertMatchesRegularExpression('/^[0-9]{6}$/', $game->code);
         $this->assertSame(GameStatus::Lobby, $game->status);
         $this->assertSame('individual', $game->mode);
@@ -55,7 +55,7 @@ class LobbyTest extends TestCase
 
     public function test_invalid_settings_cannot_create_a_session(): void
     {
-        Livewire::actingAs(User::factory()->create())->test(SessionCreate::class)
+        Livewire::test(SessionCreate::class)
             ->set('mode', 'unknown')->set('difficulty', 'unknown')->set('durationMinutes', 0)
             ->call('save')->assertHasErrors(['mode', 'difficulty', 'duration_minutes']);
 
@@ -64,33 +64,35 @@ class LobbyTest extends TestCase
 
     public function test_empty_duration_gets_a_validation_error(): void
     {
-        Livewire::actingAs(User::factory()->create())->test(SessionCreate::class)
+        Livewire::test(SessionCreate::class)
             ->set('durationMinutes', '')->call('save')->assertHasErrors(['duration_minutes']);
     }
 
-    public function test_teacher_cannot_open_or_modify_another_teachers_lobby(): void
+    public function test_another_browser_cannot_open_or_modify_the_host_lobby(): void
     {
         $game = $this->game();
-        $this->actingAs(User::factory()->create())
-            ->get(route('teacher.sessions.lobby', $game))->assertForbidden();
+        $this->withSession(['room_owner_token' => str_repeat('x', 64)])
+            ->get(route('rooms.lobby', $game))->assertForbidden();
 
         $this->expectException(AuthorizationException::class);
         app(GameService::class)->addTeam($game, 'Intrusos');
     }
 
-    public function test_teacher_session_list_is_private(): void
+    public function test_room_list_only_contains_rooms_created_in_this_browser(): void
     {
         $mine = $this->game();
+        $myToken = session('room_owner_token');
+        session(['room_owner_token' => str_repeat('x', 64)]);
         $other = $this->game();
 
-        $this->actingAs($mine->teacher)->get(route('teacher.sessions.index'))
+        $this->withSession(['room_owner_token' => $myToken])->get(route('rooms.index'))
             ->assertOk()->assertSee($mine->code)->assertDontSee($other->code);
     }
 
-    public function test_teacher_can_add_teams_and_duplicate_names_are_rejected(): void
+    public function test_host_can_add_teams_and_duplicate_names_are_rejected(): void
     {
         $game = $this->game();
-        $component = Livewire::actingAs($game->teacher)->test(SessionLobby::class, ['gameSession' => $game])
+        $component = Livewire::test(SessionLobby::class, ['gameSession' => $game])
             ->set('teamName', '  Criptoequipo  ')->call('addTeam')->assertHasNoErrors()
             ->assertSee('Criptoequipo')->assertSet('teamName', '');
 
@@ -171,17 +173,17 @@ class LobbyTest extends TestCase
     public function test_team_creation_is_blocked_after_game_starts(): void
     {
         $game = $this->game();
-        $component = Livewire::actingAs($game->teacher)->test(SessionLobby::class, ['gameSession' => $game]);
+        $component = Livewire::test(SessionLobby::class, ['gameSession' => $game]);
         $game->update(['status' => GameStatus::Active]);
 
         $component->set('teamName', 'Tardíos')->call('addTeam')->assertHasErrors(['code']);
         $this->assertDatabaseCount('teams', 0);
     }
 
-    public function test_polling_shows_new_players_to_the_teacher(): void
+    public function test_polling_shows_new_players_to_the_host(): void
     {
         $game = $this->game('individual');
-        $component = Livewire::actingAs($game->teacher)->test(SessionLobby::class, ['gameSession' => $game]);
+        $component = Livewire::test(SessionLobby::class, ['gameSession' => $game]);
         app(GameService::class)->joinSession($game->code, 'Ana', null);
 
         $component->call('$refresh')->assertSee('Ana')->assertSee('1 / 100 alumnos');

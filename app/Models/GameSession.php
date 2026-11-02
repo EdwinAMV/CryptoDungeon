@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Enums\GameStatus;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class GameSession extends Model
 {
-    protected $fillable = ['teacher_id', 'code', 'mode', 'difficulty', 'duration_minutes', 'status'];
+    protected $fillable = ['owner_token_hash', 'code', 'mode', 'difficulty', 'duration_minutes', 'status'];
+
+    protected $hidden = ['owner_token_hash'];
 
     protected function casts(): array
     {
@@ -21,11 +22,6 @@ class GameSession extends Model
             'ends_at' => 'immutable_datetime',
             'finished_at' => 'immutable_datetime',
         ];
-    }
-
-    public function teacher(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     public function teams(): HasMany

@@ -1,13 +1,13 @@
 <div wire:poll.3s>
-    <a href="{{ route('teacher.sessions.index') }}" class="text-sm text-slate-400 hover:text-white">← Mis sesiones</a>
+    <a href="{{ route('rooms.index') }}" class="text-sm text-slate-400 hover:text-white">← Mis salas</a>
     <div class="my-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
         <section class="panel text-center">
-            <h1 class="text-xl font-bold">Lobby de la sesión</h1>
+            <h1 class="text-xl font-bold">Lobby de la sala</h1>
             <p class="mt-5 text-sm text-slate-400">Entra en {{ url('/entrar') }} con el código</p>
             <p class="my-5 font-mono text-4xl font-black tracking-widest text-amber-300 sm:text-5xl">{{ $game->code }}</p>
             <p>{{ $game->mode === 'teams' ? 'Por equipos' : 'Individual' }} · {{ $game->difficulty === 'easy' ? 'Fácil' : 'Normal' }}</p>
             <p class="mt-2 text-slate-400">{{ $game->duration_minutes }} minutos</p>
-            <p class="mt-6 text-sm text-amber-200">El inicio de la aventura estará disponible en la siguiente fase.</p>
+            <p class="mt-6 text-sm text-amber-200">El inicio de la aventura todavía no está disponible.</p>
         </section>
         <section>
             <div class="mb-5 flex flex-wrap items-center justify-between gap-3">

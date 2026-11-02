@@ -15,15 +15,8 @@
             <a href="{{ route('home') }}" class="text-xl font-black tracking-tight text-amber-300">CryptoDungeon</a>
             <div class="flex items-center gap-5 text-sm">
                 <a href="{{ route('player.join') }}" class="hover:text-amber-300">Entrar como alumno</a>
-                @auth
-                    <a href="{{ route('teacher.sessions.index') }}" class="hover:text-amber-300">Mis sesiones</a>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button class="text-slate-400 hover:text-white">Salir</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="hover:text-amber-300">Profesor</a>
-                @endauth
+                <a href="{{ route('rooms.index') }}" class="hover:text-amber-300">Mis salas</a>
+                <a href="{{ route('rooms.create') }}" class="hover:text-amber-300">Crear sala</a>
             </div>
         </nav>
     </header>

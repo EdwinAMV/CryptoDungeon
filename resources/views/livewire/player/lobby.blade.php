@@ -4,7 +4,7 @@
         <h1 class="mt-4 text-3xl font-bold">Hola, {{ $participant->display_name }}</h1>
         <p class="mt-3 text-slate-400">Sesión <span class="font-mono text-slate-200">{{ $game->code }}</span> · {{ $game->duration_minutes }} minutos</p>
         <div class="my-7 rounded-xl border border-amber-800 bg-amber-950/30 p-5">
-            <p class="font-semibold text-amber-200">Esperando al profesor</p>
+            <p class="font-semibold text-amber-200">Esperando al anfitrión</p>
             <p class="mt-2 text-sm text-slate-400">Mantén esta página abierta. Tu plaza está guardada en este navegador.</p>
         </div>
         <h2 class="text-xl font-bold">{{ $participant->team->name }}</h2>
@@ -17,9 +17,9 @@
         @else
             <p class="mt-3 text-sm text-slate-400">Juegas en modo individual.</p>
         @endif
-        <form action="{{ route('logout') }}" method="POST" class="mt-8">
+        <form action="{{ route('player.leave') }}" method="POST" class="mt-8">
             @csrf
-            <button class="text-sm text-slate-400 underline hover:text-white">Salir de este navegador</button>
+            <button class="text-sm text-slate-400 underline hover:text-white">Salir como participante</button>
         </form>
     </div>
 </section>

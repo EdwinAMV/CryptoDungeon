@@ -1,7 +1,7 @@
 <section class="panel mx-auto max-w-md">
     <p class="text-sm font-semibold uppercase tracking-widest text-amber-300">Acceso de alumnos</p>
     <h1 class="mb-2 mt-3 text-3xl font-bold">Entra en la aventura</h1>
-    <p class="mb-6 text-slate-400">Pide el código de seis cifras a tu profesor.</p>
+    <p class="mb-6 text-slate-400">Pide el código de seis cifras a quien creó la sala.</p>
     <x-form-errors />
     <form wire:submit="join" class="space-y-5">
         <div>
@@ -22,7 +22,7 @@
                     @endforeach
                 </select>
                 @if ($teams->isEmpty())
-                    <p class="mt-2 text-sm text-amber-200">El profesor todavía no ha creado los equipos.</p>
+                    <p class="mt-2 text-sm text-amber-200">El anfitrión todavía no ha creado los equipos.</p>
                 @endif
             </div>
         @elseif ($game)
