@@ -23,6 +23,9 @@
     <main id="content" class="mx-auto max-w-6xl px-6 py-10">
         {{ $slot }}
     </main>
+    <footer class="px-4 py-2 text-center text-xs text-slate-600">
+        Made with love by Edwin Medrano
+    </footer>
     @livewireScripts
 </body>
 </html>
