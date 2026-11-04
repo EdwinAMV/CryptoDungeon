@@ -21,6 +21,7 @@
 /.vscode
 /tests
 /docs
+/Docs
 .phpunit*
 .DS_Store
 

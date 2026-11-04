@@ -43,6 +43,9 @@ Homestead.yaml
 /.zed
 
 # Instrucciones y configuración local de asistentes de IA
+# Contexto interno: en este Mac Docs/ y docs/ son la misma carpeta.
+# Las guías ya rastreadas por Git conservan su seguimiento.
+/[Dd]ocs/
 AGENTS.md
 AGENTS.override.md
 CLAUDE.md
