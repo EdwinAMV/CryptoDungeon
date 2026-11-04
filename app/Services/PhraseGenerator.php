@@ -10,18 +10,8 @@ class PhraseGenerator
     public function generateMany(int $count): array
     {
         $pool = [];
-        foreach (require resource_path('data/phrases.php') as $definition) {
-            $phrases = [$definition['template']];
-            foreach ($definition['slots'] as $placeholder => $values) {
-                $expanded = [];
-                foreach ($phrases as $phrase) {
-                    foreach ($values as $value) {
-                        $expanded[] = str_replace($placeholder, $value, $phrase);
-                    }
-                }
-                $phrases = $expanded;
-            }
-            array_push($pool, ...array_map(PuzzleText::sentence(...), $phrases));
+        foreach (require resource_path('data/phrases.php') as $topic) {
+            array_push($pool, ...array_map(PuzzleText::sentence(...), $topic['phrases']));
         }
         $pool = array_values(array_unique($pool));
         if ($count < 1 || $count > count($pool)) {
