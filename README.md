@@ -36,7 +36,23 @@ El anfitrión ve las posiciones de todos los jugadores y el progreso, la puntuac
 
 Los desafíos se generan en el servidor al crear la sala y se conservan al empezar la partida. Todos los equipos reciben los mismos mensajes, pero avanzan de forma independiente.
 
-Las frases se construyen combinando plantillas y vocabulario compatible de [resources/data/phrases.php](resources/data/phrases.php), sin servicios externos de IA. Se eligen frases distintas por partida y se reparten los tres cifrados de forma equilibrada:
+La beta utiliza un banco de **140 frases completas revisadas**, de 4–7 palabras y hasta 48 caracteres, en [resources/data/phrases.php](resources/data/phrases.php). Se eligen al azar 5, 10 o 15 frases distintas de todo el banco, sin selector de tema ni generación libre mediante IA. No se garantiza que una partida incluya los siete apartados.
+
+El banco contiene 20 frases por cada uno de estos contenidos de [IFCT0108 en el BOE](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2009-13001):
+
+| Procedencia | Contenido de la beta |
+| --- | --- |
+| MF1208_1 · apartado 2 | Verificación del sistema |
+| MF1208_1 · apartado 5 | Replicación física de particiones y discos |
+| UF0465 · apartado 4 | Conectores y buses externos |
+| UF0465 · apartado 3 | Elementos hardware internos |
+| UF0466 · apartado 2 | Instalación básica de sistemas operativos |
+| UF0466 · apartado 1 | Herramientas de testeo |
+| UF0466 · apartado 3 | Software de testeo y verificación |
+
+Son frases didácticas propias vinculadas a esos apartados, no citas literales ni cobertura completa del certificado. Las salas ya creadas conservan sus mensajes originales.
+
+Los tres cifrados se reparten de forma equilibrada:
 
 | Cifrado | Generación y ayuda de resolución |
 | --- | --- |
@@ -46,7 +62,7 @@ Las frases se construyen combinando plantillas y vocabulario compatible de [reso
 
 Se utiliza el alfabeto A–Z, sin Ñ ni tildes. La validación de respuestas ignora diferencias de mayúsculas, tildes, espacios y puntuación.
 
-Las soluciones se guardan cifradas y se validan en el backend. No se incluyen en los datos enviados a los jugadores. El creador puede descargar el TXT mediante una ruta que comprueba sus permisos en cada petición; no se guarda un archivo público con las respuestas. Si el navegador bloquea la descarga automática inicial, el panel ofrece el enlace **«Descargar respuestas (.txt)»**.
+Las soluciones se guardan cifradas y se validan en el backend. No se incluyen en los datos enviados a los jugadores. El creador puede descargar el TXT mediante una ruta que comprueba sus permisos en cada petición; no se guarda un archivo público con las respuestas. El TXT incluye, por habitación, tipo de cifrado, mensaje, solución, parámetros guardados y procedimiento de descifrado con ejemplos. En Vigenère añade la clave alineada con el mensaje completo. Si el navegador bloquea la descarga automática inicial, el panel ofrece el enlace **«Descargar respuestas (.txt)»**.
 
 El bloque del mensaje cifrado impide seleccionar, copiar, arrastrar y abrir el menú contextual desde la interfaz. El campo de respuesta y el chat mantienen su edición normal. Esta medida dificulta la copia directa, pero no impide capturas, OCR ni la inspección del navegador.
 
@@ -176,7 +192,7 @@ npm run build:vercel
 
 | Archivo o carpeta | Contenido |
 | --- | --- |
-| [resources/data/phrases.php](resources/data/phrases.php) | Plantillas y vocabulario de los mensajes. |
+| [resources/data/phrases.php](resources/data/phrases.php) | Banco revisado de 140 frases, agrupado por referencia curricular. |
 | [config/cryptodungeon.php](config/cryptodungeon.php) | Cantidad de acertijos por dificultad y umbral de presencia. |
 | [app/Services/ScoreCalculator.php](app/Services/ScoreCalculator.php) | Fórmula de puntuación. |
 | [resources/css/app.css](resources/css/app.css) | Estilos de la interfaz, mapa y chat flotante. |
