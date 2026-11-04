@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CipherType;
 use App\Enums\GameStatus;
 use App\Livewire\Host\SessionCreate;
 use App\Livewire\Host\SessionLobby;
@@ -9,6 +10,7 @@ use App\Livewire\Player\Lobby;
 use App\Models\GameSession;
 use App\Services\DungeonMapService;
 use App\Services\GameService;
+use App\Services\PuzzleGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -46,12 +48,36 @@ class RoomLifecycleTest extends TestCase
         foreach ($game->rooms as $room) {
             $this->assertStringContainsString($room->solution, $contents);
             $this->assertStringContainsString($room->ciphertext, $contents);
+            $this->assertStringContainsString($room->cipher_type->label(), $contents);
         }
+        $this->assertSame(5, substr_count($contents, 'Procedimiento de descifrado:'));
+        $this->assertStringContainsString('desplazamiento =', $contents);
+        $this->assertStringContainsString('Original: ABCDEFGHIJKLMNOPQRSTUVWXYZ', $contents);
+        $this->assertStringContainsString('Parámetro: clave =', $contents);
         $ids = $game->rooms->modelKeys();
         app(GameService::class)->joinSession($game->code, 'Ana', null);
         app(GameService::class)->joinSession($game->code, 'Luis', null);
         app(GameService::class)->startSession($game);
         $this->assertSame($ids, $game->fresh()->rooms->modelKeys());
+    }
+
+    public function test_existing_dungeon_phrases_and_parameters_survive_the_new_bank_and_guide_download(): void
+    {
+        [$game, $player] = $this->game();
+        $room = $game->rooms()->first();
+        $legacyPhrase = 'LA LLAVE DE ORO ABRE LA PUERTA DEL ARCHIVO';
+        $room->update(app(PuzzleGenerator::class)->generate(CipherType::Vigenere, $legacyPhrase));
+        $snapshot = fn () => $game->rooms()->get()->map(fn ($saved) => [
+            $saved->id, $saved->cipher_type, $saved->ciphertext, $saved->public_parameters, $saved->solution,
+        ])->all();
+        $before = $snapshot();
+        $download = $this->get(route('rooms.answers', $game))->assertOk()->streamedContent();
+        $this->assertStringContainsString($legacyPhrase, $download);
+        $this->assertStringContainsString('Claro:   '.$legacyPhrase, $download);
+        app(GameService::class)->startSession($game);
+        $this->assertSame($before, $snapshot());
+        session(['participant_id' => $player->id]);
+        Livewire::test(Lobby::class)->assertSee($room->ciphertext)->assertDontSee($legacyPhrase);
     }
 
     public function test_players_and_other_browsers_cannot_download_answers_or_delete_a_room(): void

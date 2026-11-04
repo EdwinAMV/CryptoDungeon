@@ -18,14 +18,31 @@ class PuzzleGenerationTest extends TestCase
         $this->assertSame(15, $generator->countForDifficulty('hard'));
     }
 
-    public function test_phrase_templates_produce_distinct_complete_sentences(): void
+    public function test_beta_bank_produces_short_distinct_sentences_from_all_seven_topics(): void
     {
-        $phrases = (new PhraseGenerator)->generateMany(15);
-        $this->assertCount(15, array_unique($phrases));
+        $bank = require resource_path('data/phrases.php');
+        $this->assertCount(7, $bank);
+        foreach ($bank as $topic) {
+            $this->assertNotEmpty($topic['reference']);
+            $this->assertCount(20, $topic['phrases']);
+        }
+        $phrases = (new PhraseGenerator)->generateMany(140);
+        $this->assertCount(140, array_unique($phrases));
         foreach ($phrases as $phrase) {
             $this->assertMatchesRegularExpression('/\A[A-Z]+(?: [A-Z]+)+\z/', $phrase);
-            $this->assertLessThan(100, strlen($phrase));
+            $this->assertLessThanOrEqual(50, strlen($phrase));
+            $this->assertGreaterThanOrEqual(4, str_word_count($phrase));
+            $this->assertLessThanOrEqual(7, str_word_count($phrase));
         }
+        $selection = (new PhraseGenerator)->generateMany(15);
+        $this->assertCount(15, array_unique($selection));
+        $this->assertSame([], array_diff($selection, $phrases));
+    }
+
+    public function test_generation_rejects_requests_larger_than_the_bank_instead_of_repeating(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        (new PhraseGenerator)->generateMany(141);
     }
 
     public function test_maps_always_have_unique_cells_and_a_contiguous_path(): void
