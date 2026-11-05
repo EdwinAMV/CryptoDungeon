@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\GameStatus;
 use App\Livewire\Host\SessionLobby;
+use App\Livewire\Host\TeamChatMonitor;
 use App\Livewire\Player\Lobby;
 use App\Livewire\Player\TeamChat;
 use App\Models\TeamChatMessage;
@@ -134,11 +135,13 @@ class ScoringAndChatTest extends TestCase
         $payload = '<script>alert("test")</script>';
         $chat->set('message', $payload)->call('send')->assertHasNoErrors()
             ->assertSee($payload)->assertDontSee($payload, false);
-        for ($index = 0; $index < 9; $index++) {
-            app(TeamChatService::class)->send('Mensaje '.$index);
-        }
-        $chat->set('message', 'Exceso')->call('send')->assertHasErrors(['message']);
-        $this->assertDatabaseCount('team_chat_messages', 10);
+        $chat->set('message', 'Exceso')->call('send')->assertHasErrors(['message'])->assertSet('message', 'Exceso');
+        $this->assertDatabaseCount('team_chat_messages', 1);
+        $this->travel(3)->seconds();
+        $chat->call('send')->assertHasErrors(['message']);
+        $this->travel(1)->seconds();
+        $chat->call('send')->assertHasNoErrors()->assertSet('message', '');
+        $this->assertDatabaseCount('team_chat_messages', 2);
     }
 
     public function test_only_last_fifty_messages_are_loaded_and_room_deletion_cascades_chat(): void
@@ -155,5 +158,63 @@ class ScoringAndChatTest extends TestCase
         app(GameService::class)->deleteSession($game);
         $this->assertDatabaseCount('team_chat_messages', 0);
         Livewire::test(TeamChat::class)->assertSee('El chat del equipo ya no está disponible');
+    }
+
+    public function test_cooldown_is_shared_across_tabs_but_not_between_players_and_emojis_are_plain_text(): void
+    {
+        [$game, $first] = $this->game();
+        $companion = app(GameService::class)->joinSession($game->code, 'Eva', $first->team_id);
+        session(['participant_id' => $first->id]);
+        Livewire::test(TeamChat::class)->set('message', 'Una idea 💡🔑')->call('send')->assertHasNoErrors()->assertSee('Una idea 💡🔑');
+        Livewire::test(TeamChat::class)->set('message', 'Otra pestaña')->call('send')->assertHasErrors(['message']);
+        session(['participant_id' => $companion->id]);
+        Livewire::test(TeamChat::class)->set('message', 'De acuerdo 👍')->call('send')->assertHasNoErrors();
+        $this->assertDatabaseCount('team_chat_messages', 2);
+        $this->assertDatabaseHas('team_chat_messages', ['body' => 'Una idea 💡🔑']);
+    }
+
+    public function test_host_monitor_selects_only_owned_room_teams_and_escapes_messages(): void
+    {
+        [$game, $first, $rival] = $this->game();
+        $payload = '<img src=x onerror=alert(1)>';
+        session(['participant_id' => $first->id]);
+        app(TeamChatService::class)->send($payload);
+        session(['participant_id' => $rival->id]);
+        app(TeamChatService::class)->send('Mensaje privado rojo');
+        $host = Livewire::test(TeamChatMonitor::class, ['gameSessionId' => $game->id])
+            ->assertSee($payload)->assertDontSee($payload, false)->assertDontSee('Mensaje privado rojo');
+        $host->call('selectTeam', $rival->team_id)->assertSee('Mensaje privado rojo')->assertDontSee($payload);
+        for ($index = 0; $index < 55; $index++) {
+            TeamChatMessage::create(['team_id' => $first->team_id, 'participant_id' => $first->id, 'body' => 'Historial '.$index]);
+        }
+        $host->call('selectTeam', $first->team_id)->assertViewHas('messages', fn ($messages) => $messages->count() === 50 && $messages->first()->body === 'Historial 5');
+        [$otherGame, $otherPlayer] = $this->game();
+        $host->call('selectTeam', $otherPlayer->team_id)->assertForbidden();
+        Livewire::test(SessionLobby::class, ['gameSession' => $game])->assertSeeLivewire(TeamChatMonitor::class)->assertDontSee('Activar ambiente');
+    }
+
+    public function test_monitor_rechecks_ownership_on_poll_and_players_have_no_monitor_access(): void
+    {
+        [$game, $player] = $this->game();
+        $monitor = Livewire::test(TeamChatMonitor::class, ['gameSessionId' => $game->id]);
+        session()->forget('room_owner_token');
+        session(['participant_id' => $player->id]);
+        $monitor->call('$refresh')->assertForbidden();
+        Livewire::test(TeamChatMonitor::class, ['gameSessionId' => $game->id])->assertForbidden();
+        Livewire::test(Lobby::class)->assertDontSeeLivewire(TeamChatMonitor::class);
+    }
+
+    public function test_answer_payloads_are_validated_and_cannot_execute_html_or_sql(): void
+    {
+        [$game, $player] = $this->game('individual');
+        app(GameService::class)->startSession($game);
+        session(['participant_id' => $player->id]);
+        $payload = '<script>alert(1)</script>\'; DROP TABLE game_sessions; --';
+        Livewire::test(Lobby::class)->set('answer', $payload)->call('submit')
+            ->assertHasErrors(['answer'])->assertDontSee('<script>alert(1)</script>', false);
+        $this->assertDatabaseCount('game_sessions', 1);
+        $this->assertDatabaseCount('answer_attempts', 1);
+        Livewire::test(Lobby::class)->set('answer', str_repeat('a', 301))->call('submit')->assertHasErrors(['answer']);
+        $this->assertDatabaseCount('answer_attempts', 1);
     }
 }
