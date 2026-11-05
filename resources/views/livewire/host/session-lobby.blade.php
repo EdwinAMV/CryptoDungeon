@@ -11,7 +11,6 @@
     @if ($map)
         <div class="my-5 flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-2xl font-bold">Vista del anfitrión</h1>
-            <x-background-music />
         </div>
         <x-dungeon-map :map="$map" title="La expedición en vivo" />
     @endif
@@ -72,4 +71,7 @@
             <p class="mt-5 text-xs text-slate-500">Se actualiza cada 3 segundos con la pestaña activa. «Sin señal» indica falta de actividad reciente.</p>
         </section>
     </div>
+    @if ($game->mode === 'teams')
+        <livewire:host.team-chat-monitor :game-session-id="$game->id" :key="'host-chat-'.$game->id" />
+    @endif
 </div>
