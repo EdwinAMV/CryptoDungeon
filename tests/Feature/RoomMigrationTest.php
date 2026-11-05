@@ -74,6 +74,17 @@ class RoomMigrationTest extends TestCase
             $this->assertSame(100, DB::table('team_room_progress')->where('id', $progress)->value('awarded_points'));
             DB::table('team_room_progress')->where('id', $progress)->update(['awarded_points' => -20]);
             $this->assertSame(-20, DB::table('team_room_progress')->where('id', $progress)->value('awarded_points'));
+            (require database_path('migrations/2026_11_05_000001_create_hint_usages.php'))->up();
+            $this->assertTrue(Schema::hasTable('hint_usages'));
+            $this->assertSame(0, DB::table('hint_usages')->count());
+            $participantId = DB::table('participants')->where('team_id', $team)->value('id');
+            $legacyHint = DB::table('hint_usages')->insertGetId([
+                'team_room_progress_id' => $progress, 'participant_id' => $participantId, 'level' => 1, 'penalty' => 10,
+            ]);
+            (require database_path('migrations/2026_11_05_000002_add_hint_character_positions.php'))->up();
+            $this->assertNull(DB::table('hint_usages')->where('id', $legacyHint)->value('character_position'));
+            $this->assertSame(10, DB::table('hint_usages')->where('id', $legacyHint)->value('penalty'));
+            $this->assertSame(-20, DB::table('team_room_progress')->where('id', $progress)->value('awarded_points'));
             $this->assertSame('Ana', DB::table('participants')->where('team_id', $team)->value('display_name'));
             $this->assertNull(DB::table('participants')->where('team_id', $team)->value('current_room_id'));
             $this->assertSame(3, DB::table('game_sessions')->count());
