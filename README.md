@@ -105,24 +105,13 @@ La penalización se resta del premio al resolver la habitación, junto con los f
 
 El chat privado está disponible en el lobby, durante la partida y después de completar el recorrido, hasta salir de la sala. Se abre con el botón flotante de la esquina inferior derecha y se puede ocultar, también con Escape, sin perder el borrador.
 
-Cada autor aparece con su nombre y color personal. El chat muestra los últimos 50 mensajes, se actualiza cada tres segundos y permite mensajes de hasta 500 caracteres. Cada participante puede enviar hasta 10 mensajes en 30 segundos.
+Cada autor aparece con su nombre y color personal. El chat muestra los últimos 50 mensajes, se actualiza cada tres segundos y permite mensajes de hasta 500 caracteres. Enter envía el mensaje y Shift+Enter añade un salto de línea. El selector de emojis inserta símbolos en el borrador. Hay una espera de **4 segundos entre mensajes por participante**, comprobada en la base de datos incluso entre pestañas y distintas instancias del servidor.
 
-El servidor identifica al jugador y su grupo mediante la sesión del navegador; no acepta identificadores de equipo elegidos por el cliente. Los mensajes se muestran como texto. El chat no aparece en partidas individuales ni en el panel del anfitrión, y sus mensajes se eliminan al borrar la sala.
+El servidor identifica al jugador y su grupo mediante la sesión del navegador; no acepta identificadores de equipo elegidos por el cliente. Los mensajes se muestran como texto. No hay chat en partidas individuales. El creador dispone de «Supervisión de chats», un panel de solo lectura con selección de equipo y actualización cada tres segundos. Se comprueba su permiso en cada lectura; los alumnos no pueden consultar otros grupos. Los mensajes se eliminan al borrar la sala.
 
-## Música ambiental
+## Audio
 
-La música se reproduce **solo en la pantalla del anfitrión**, con controles de pausa y volumen. Intenta arrancar automáticamente; si el navegador exige interacción para permitir sonido, reintenta la reproducción con el primer clic o pulsación de tecla en la página. El botón «Activar ambiente» permite iniciarla también manualmente.
-
-La aplicación elige una pista aleatoria y, al terminar, selecciona otra sin repetir inmediatamente la anterior cuando hay varias. Pausar y reanudar conserva la pista y su posición, y el polling no reinicia la reproducción.
-
-Para cambiar la selección, añade o elimina archivos directamente en **[public/audio/](public/audio/)**:
-
-- Se detectan automáticamente archivos MP3, M4A, OGG, WAV, WebM y AAC; la reproducción depende de los formatos admitidos por el navegador.
-- No hace falta modificar código ni variables de entorno. No se exploran subcarpetas.
-- Para actualizar la música en producción, incluye los archivos en el repositorio y vuelve a desplegar en Vercel.
-- Utiliza audios propios o con permiso para distribuirlos en la aplicación.
-
-Consulta [los detalles del audio](public/audio/README.md).
+La música está desactivada. No se monta ningún reproductor ni se cargan pistas durante la partida. Los archivos existentes se conservan para una posible recuperación futura; el build estático de Vercel ya no copia la carpeta de audio.
 
 ## Gestión de salas y salidas
 
@@ -201,7 +190,7 @@ php artisan test
 npm run build
 ```
 
-Las pruebas utilizan SQLite en memoria y cubren el acceso a salas, los permisos del anfitrión, la generación de acertijos, los movimientos, las puntuaciones, las salidas y la privacidad del chat, entre otros comportamientos. Algunas pruebas del reproductor ejecutan Node.js, por lo que debe estar disponible también al ejecutar la suite PHP.
+Las pruebas utilizan SQLite en memoria y cubren el acceso a salas, los permisos del anfitrión, la generación de acertijos, los movimientos, las puntuaciones, las salidas y la privacidad del chat, entre otros comportamientos. Algunas pruebas de los componentes interactivos ejecutan Node.js, por lo que debe estar disponible también al ejecutar la suite PHP.
 
 Para comprobar además la preparación de recursos estáticos de Vercel:
 
@@ -217,7 +206,7 @@ npm run build:vercel
 | [config/cryptodungeon.php](config/cryptodungeon.php) | Cantidad de acertijos, presencia y tiempos/costes de las pistas. |
 | [app/Services/ScoreCalculator.php](app/Services/ScoreCalculator.php) | Fórmula de puntuación. |
 | [resources/css/app.css](resources/css/app.css) | Estilos de la interfaz, mapa y chat flotante. |
-| [public/audio/](public/audio/) | Pistas de música detectadas automáticamente. |
+| [public/audio/](public/audio/) | Archivos de audio conservados, con reproducción desactivada. |
 
 ## Publicación en Vercel
 
