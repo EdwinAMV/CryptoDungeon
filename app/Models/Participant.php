@@ -36,4 +36,9 @@ class Participant extends Model
     {
         return $this->hasMany(AnswerAttempt::class);
     }
+
+    public function hints(): HasMany
+    {
+        return $this->hasMany(HintUsage::class);
+    }
 }

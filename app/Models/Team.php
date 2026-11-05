@@ -35,4 +35,9 @@ class Team extends Model
     {
         return $this->hasManyThrough(AnswerAttempt::class, TeamRoomProgress::class, 'team_id', 'team_room_progress_id');
     }
+
+    public function hints(): HasManyThrough
+    {
+        return $this->hasManyThrough(HintUsage::class, TeamRoomProgress::class, 'team_id', 'team_room_progress_id');
+    }
 }

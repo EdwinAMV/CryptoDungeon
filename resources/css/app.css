@@ -113,3 +113,18 @@
 .team-chat-panel { position: absolute; right: 0; bottom: calc(100% + .75rem); display: flex; flex-direction: column; width: min(24rem, calc(100vw - 2rem)); height: min(34rem, calc(100dvh - 7rem - env(safe-area-inset-bottom))); overflow: hidden; border: 1px solid #475569; border-radius: 1.25rem; background: #0f172a; box-shadow: 0 12px 60px #000a; }
 .chat-player-avatar { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--player-color); color: #0f172a; font-size: .75rem; font-weight: 800; }
 @media (max-height: 500px) { .team-chat-panel { height: calc(100dvh - 6rem); } .team-chat-panel header { padding-top: .5rem; padding-bottom: .5rem; } }
+
+.hint-orb { display: inline-flex; width: 2.75rem; height: 2.75rem; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #8a7155; border-radius: 50%; background: #292c31; color: #fcd34d; font: bold 1.5rem Georgia, serif; }
+.hint-orb-ready { animation: hint-light 2s ease-in-out infinite; border-color: #fcd34d; }
+.hint-orb:focus-visible, .hint-letter:focus-visible { outline: 2px solid #fcd34d; outline-offset: 3px; }
+.hint-modal-backdrop { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 1rem; background: #020617c9; }
+.hint-modal { display: flex; flex-direction: column; width: 100%; max-width: 44rem; max-height: calc(100dvh - 2rem); overflow: hidden; border: 1px solid #475569; border-radius: 1.25rem; background: #0f172a; color: #f1f5f9; box-shadow: 0 20px 60px #0009; }
+.hint-modal-content { overflow-y: auto; padding: 1.5rem; }
+.hint-modal header, .hint-modal footer { flex-shrink: 0; }
+.hint-letter, .hint-letter-static { display: inline-flex; width: 2rem; height: 2.5rem; align-items: center; justify-content: center; font: bold 1rem ui-monospace, monospace; }
+.hint-letter { border: 1px solid #64748b; border-radius: .4rem; background: #1e293b; color: #e2e8f0; }
+.hint-letter:not(:disabled):hover { border-color: #fcd34d; background: #334155; }
+.hint-letter-selected { background: #fcd34d !important; color: #0f172a; border-color: #fef3c7; box-shadow: 0 0 0 2px #fcd34d55; }
+.hint-letter-revealed { border-color: #34d399; background: #064e3b; color: #a7f3d0; cursor: default; }
+@keyframes hint-light { 0%, 100% { box-shadow: 0 0 0 0 #fcd34d00; background: #292c31; } 50% { box-shadow: 0 0 18px 4px #fcd34d55; background: #514325; } }
+@media (prefers-reduced-motion: reduce) { .hint-orb-ready { animation: none; box-shadow: 0 0 8px #fcd34d55; } }

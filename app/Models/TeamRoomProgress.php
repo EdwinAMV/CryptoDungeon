@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeamRoomProgress extends Model
 {
+    public function hints(): HasMany
+    {
+        return $this->hasMany(HintUsage::class, 'team_room_progress_id');
+    }
+
     public function attempts(): HasMany
     {
         return $this->hasMany(AnswerAttempt::class, 'team_room_progress_id');

@@ -54,12 +54,14 @@ class SessionLobby extends Component
             ->with(['participants' => fn ($players) => $players->withCount([
                 'attempts as attempt_count',
                 'attempts as incorrect_count' => fn ($attempts) => $attempts->where('is_correct', false),
+                'hints as hint_count',
             ])])
             ->withSum('progress as score', 'awarded_points')
             ->withCount([
                 'progress as solved_count' => fn ($progress) => $progress->whereNotNull('solved_at'),
                 'attempts as attempt_count',
                 'attempts as incorrect_count' => fn ($attempts) => $attempts->where('is_correct', false),
+                'hints as hint_count',
             ]),
         ])->loadCount('rooms');
 

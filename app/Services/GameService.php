@@ -175,7 +175,7 @@ class GameService
             $incorrectAttempts = $progress->attempts()->where('is_correct', false)->count();
             $progress->update([
                 'solved_at' => now(),
-                'awarded_points' => app(ScoreCalculator::class)->solvedRoom($incorrectAttempts),
+                'awarded_points' => app(ScoreCalculator::class)->solvedRoom($incorrectAttempts, (int) $progress->hints()->sum('penalty')),
             ]);
             $next = $game->rooms()->where('position', '>', $progress->room->position)->first();
             if ($next) {

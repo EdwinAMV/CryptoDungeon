@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Models\Participant;
 use App\Services\DungeonMapService;
 use App\Services\GameService;
+use App\Services\HintService;
 use App\Services\ParticipantPosition;
 use App\Services\ScoreCalculator;
 use Illuminate\Support\Facades\RateLimiter;
@@ -62,6 +63,14 @@ class Lobby extends Component
         $this->resetValidation();
     }
 
+    public function requestHint(int $roomId, int $position, int $expectedNumber, HintService $hints): void
+    {
+        abort_unless($this->roomId && $this->roomId === $roomId, 403);
+        $hints->request($this->participant(), $roomId, $position, $expectedNumber);
+        $this->resetValidation('hint');
+        $this->dispatch('hint-letter-revealed', roomId: $roomId);
+    }
+
     public function render()
     {
         $identity = session('participant_id');
@@ -76,7 +85,7 @@ class Lobby extends Component
         $game = $participant->team->gameSession;
 
         if ($game->status !== GameStatus::Lobby) {
-            $progress = $participant->team->progress()->with('room')->withCount([
+            $progress = $participant->team->progress()->with(['room', 'hints'])->withCount([
                 'attempts as attempt_count',
                 'attempts as incorrect_count' => fn ($query) => $query->where('is_correct', false),
             ])->orderBy('id')->get();
@@ -111,21 +120,28 @@ class Lobby extends Component
                 'attemptCount' => $progress->sum('attempt_count'),
                 'incorrectCount' => $progress->sum('incorrect_count'),
                 'roomIncorrectCount' => $current?->incorrect_count ?? 0,
-                'availablePoints' => app(ScoreCalculator::class)->solvedRoom($current?->incorrect_count ?? 0),
+                'hints' => $current && $game->status === GameStatus::Active ? app(HintService::class)->state($participant, $current) : [],
+                'hintCount' => $progress->sum(fn ($step) => $step->hints->count()),
+                'hintPenalty' => $progress->sum(fn ($step) => $step->hints->sum('penalty')),
+                'roomHintPenalty' => $current?->hints->sum('penalty') ?? 0,
+                'availablePoints' => app(ScoreCalculator::class)->solvedRoom($current?->incorrect_count ?? 0, $current?->hints->sum('penalty') ?? 0),
                 'roomResults' => $progress->map(fn ($step) => [
                     'position' => $step->room->position, 'attempts' => $step->attempt_count,
                     'incorrect' => $step->incorrect_count, 'points' => $step->awarded_points,
                     'solved' => $step->solved_at !== null,
+                    'hints' => $step->hints->count(), 'hint_penalty' => $step->hints->sum('penalty'),
                 ])->all(),
                 'playerResults' => $participant->team->participants()->withCount([
                     'attempts as attempt_count',
                     'attempts as incorrect_count' => fn ($query) => $query->where('is_correct', false),
+                    'hints as hint_count',
                 ])->orderBy('id')->get(),
                 'standings' => $game->teams()->withSum('progress as score', 'awarded_points')
                     ->withCount([
                         'progress as solved_count' => fn ($query) => $query->whereNotNull('solved_at'),
                         'attempts as attempt_count',
                         'attempts as incorrect_count' => fn ($query) => $query->where('is_correct', false),
+                        'hints as hint_count',
                     ])
                     ->orderByDesc('score')->orderBy('id')->get(),
             ]);
