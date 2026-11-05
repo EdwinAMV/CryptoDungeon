@@ -3,6 +3,7 @@
 namespace App\Livewire\Player;
 
 use App\Services\TeamChatService;
+use Illuminate\Support\Facades\File;
 use Livewire\Component;
 
 class TeamChat extends Component
@@ -25,6 +26,7 @@ class TeamChat extends Component
             'participant' => $participant,
             'messages' => $participant ? $chat->messages() : collect(),
             'cooldownUntil' => $participant ? $chat->cooldownUntil($participant) : 0,
+            'emojis' => File::json(resource_path('data/chat-emojis.json'), JSON_THROW_ON_ERROR),
         ]);
     }
 }

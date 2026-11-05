@@ -53,7 +53,7 @@
                     <span class="text-[10px] text-slate-500">Enter envía · Shift+Enter añade una línea</span>
                 </div>
                 <div id="team-chat-emojis" x-show="emojisOpen" x-cloak class="flex flex-wrap gap-1 rounded-lg bg-slate-800 p-2" aria-label="Emojis disponibles">
-                    @foreach (['👍' => 'De acuerdo', '👎' => 'En desacuerdo', '😊' => 'Sonrisa', '🎉' => 'Celebración', '🤔' => 'Pensando', '💡' => 'Idea', '🔑' => 'Clave', '✅' => 'Correcto', '❓' => 'Pregunta', '🙌' => 'Bien hecho', '👏' => 'Aplausos', '🚀' => 'Adelante'] as $emoji => $label)
+                    @foreach ($emojis as $emoji => $label)
                         <button type="button" @click="addEmoji(@js($emoji))" :disabled="busy" aria-label="{{ $label }}" class="rounded p-2 text-lg hover:bg-slate-700">{{ $emoji }}</button>
                     @endforeach
                 </div>
