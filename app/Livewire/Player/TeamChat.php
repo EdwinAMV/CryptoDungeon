@@ -24,6 +24,7 @@ class TeamChat extends Component
         return view('livewire.player.team-chat', [
             'participant' => $participant,
             'messages' => $participant ? $chat->messages() : collect(),
+            'cooldownUntil' => $participant ? $chat->cooldownUntil($participant) : 0,
         ]);
     }
 }

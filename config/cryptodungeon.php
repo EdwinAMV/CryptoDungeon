@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'chat_cooldown_seconds' => 4,
     'puzzles_by_difficulty' => ['easy' => 5, 'normal' => 10, 'hard' => 15],
     'presence_seconds' => 30,
     'hints' => [
