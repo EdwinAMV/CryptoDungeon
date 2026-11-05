@@ -71,14 +71,35 @@ El bloque del mensaje cifrado impide seleccionar, copiar, arrastrar y abrir el m
 Cada habitación parte de 100 puntos. Al resolverla se concede:
 
 ```text
-Puntos de la habitación = 100 − 10 × respuestas incorrectas previas
+Puntos de la habitación = 100 − 10 × respuestas incorrectas previas − coste de pistas utilizadas
 ```
 
-La puntuación puede ser negativa: **12 fallos dejan el premio de esa habitación en −20 puntos**. En equipos se acumulan los fallos de todos sus miembros en esa habitación. No se descuentan puntos de otras habitaciones ni se recalculan premios ya concedidos.
+La puntuación puede ser negativa: **12 fallos sin pistas dejan el premio de esa habitación en −20 puntos**. En equipos se acumulan los fallos de todos sus miembros en esa habitación. No se descuentan puntos de otras habitaciones ni se recalculan premios ya concedidos.
 
 Los intentos cuentan las respuestas correctas e incorrectas registradas por el servidor. Reenviar una respuesta a una habitación ya resuelta no añade intentos ni duplica puntos.
 
 Al completar el recorrido aparece un resumen con los intentos y fallos por jugador y habitación, y los puntos obtenidos. El anfitrión también puede consultar estos recuentos en su panel.
+
+## Comodín de letras
+
+El botón **«?»** abre un modal con la pregunta «¿Quieres usar el comodín?» y el mensaje cifrado dividido en casillas. Su luz parpadea suavemente cuando hay una ayuda disponible, respetando la preferencia de movimiento reducido del navegador.
+
+El jugador elige una posición, ve su coste y pulsa **Confirmar** para revelar esa letra; **Cancelar** cierra el modal sin cobrar. Las letras reveladas permanecen destacadas y no se pueden seleccionar otra vez. Una letra repetida en otra posición se compra por separado. Los espacios no son seleccionables.
+
+| Comodín de la habitación | Disponible desde el desbloqueo | Coste adicional | Coste acumulado |
+| --- | --- | ---: | ---: |
+| Primero | 90 segundos | 10 puntos | 10 puntos |
+| Segundo | 120 segundos | 20 puntos | 30 puntos |
+| Tercero | 150 segundos | 30 puntos | 60 puntos |
+| Siguientes | 30 segundos más por uso | 10 puntos más por uso | Suma de los costes |
+
+La espera se calcula en el servidor desde `unlocked_at`, no desde el último clic. Recargar, cerrar el modal o cambiar de sala no la reinicia. Cada habitación tiene su propia progresión y no hay límite global para terminar la partida.
+
+Las letras se calculan con el cifrado y los parámetros guardados; solo se envían descifradas las posiciones compradas. Se pueden revelar todas pagando cada posición, pero todavía hay que escribir y comprobar la respuesta para completar la habitación.
+
+En equipos, las letras y el coste se comparten. La misma posición no se cobra dos veces. Si otro miembro utiliza un comodín mientras hay una selección pendiente, debe revisarse el coste antes de confirmar un uso nuevo.
+
+La penalización se resta del premio al resolver la habitación, junto con los fallos previos, y puede dejar puntos negativos. El anfitrión y los resultados muestran usos y solicitantes. Las pistas del sistema anterior conservan sus cargos y los fragmentos que ya se habían adquirido. Tiempos y escalado se configuran en `config/cryptodungeon.php`.
 
 ## Chat por equipos
 
@@ -123,7 +144,7 @@ El anfitrión puede eliminar una sala desde su panel, previa confirmación. Se b
 | Actualizaciones | Polling con Livewire |
 | Entorno local | Laravel Herd, sin Docker |
 
-Las reglas de acceso, validación, progreso y puntuación se aplican en el servidor. No hay temporizador ni sistema de pistas con penalizaciones; las ayudas de cada cifrado se muestran junto al mensaje.
+Las reglas de acceso, validación, progreso y puntuación se aplican en el servidor. No hay límite de tiempo para la partida. Las instrucciones básicas de cada cifrado se muestran junto al mensaje; el comodín de letras es opcional y tiene penalización.
 
 ## Instalación y desarrollo local
 
@@ -193,7 +214,7 @@ npm run build:vercel
 | Archivo o carpeta | Contenido |
 | --- | --- |
 | [resources/data/phrases.php](resources/data/phrases.php) | Banco revisado de 140 frases, agrupado por referencia curricular. |
-| [config/cryptodungeon.php](config/cryptodungeon.php) | Cantidad de acertijos por dificultad y umbral de presencia. |
+| [config/cryptodungeon.php](config/cryptodungeon.php) | Cantidad de acertijos, presencia y tiempos/costes de las pistas. |
 | [app/Services/ScoreCalculator.php](app/Services/ScoreCalculator.php) | Fórmula de puntuación. |
 | [resources/css/app.css](resources/css/app.css) | Estilos de la interfaz, mapa y chat flotante. |
 | [public/audio/](public/audio/) | Pistas de música detectadas automáticamente. |
