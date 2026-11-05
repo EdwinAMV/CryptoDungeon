@@ -8,6 +8,13 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+@layer base {
+    button:not(:disabled), a[href], summary, select, input[type="range"], [role="button"]:not([aria-disabled="true"]) {
+        cursor: pointer;
+    }
+    button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+}
+
 @layer components {
     .panel {
         @apply rounded-2xl border border-slate-800 bg-slate-900 p-6;
@@ -128,3 +135,36 @@
 .hint-letter-revealed { border-color: #34d399; background: #064e3b; color: #a7f3d0; cursor: default; }
 @keyframes hint-light { 0%, 100% { box-shadow: 0 0 0 0 #fcd34d00; background: #292c31; } 50% { box-shadow: 0 0 18px 4px #fcd34d55; background: #514325; } }
 @media (prefers-reduced-motion: reduce) { .hint-orb-ready { animation: none; box-shadow: 0 0 8px #fcd34d55; } }
+
+
+.player-minimap {
+    position: fixed;
+    left: max(1rem, env(safe-area-inset-left));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 40;
+    width: 9rem;
+    overflow: hidden;
+    padding: .5rem;
+    border: 1px solid #8a715580;
+    border-radius: .8rem;
+    background: #111c29f2;
+    color: #e8d7ad;
+    box-shadow: 0 4px 20px #0008;
+    transition: border-color .15s, background .15s;
+}
+.player-minimap:hover { border-color: #fcd34d; background: #1e293b; }
+.player-minimap:focus-visible { outline: 2px solid #fcd34d; outline-offset: 4px; }
+.player-minimap-plan { display: block; width: 100%; height: 4.5rem; }
+.player-minimap-caption { display: flex; align-items: center; justify-content: space-between; padding: .4rem .15rem 0; font-size: .7rem; font-weight: 600; }
+.player-map-backdrop { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 1rem; background: #020617d9; }
+.player-map-dialog { display: flex; flex-direction: column; width: 100%; max-width: 76rem; max-height: calc(100dvh - 2rem); overflow: hidden; border: 1px solid #475569; border-radius: 1rem; background: #0f172a; box-shadow: 0 20px 60px #0009; }
+.player-map-content { min-height: 0; overflow: auto; padding: .75rem; }
+@media (max-width: 480px) {
+    .player-minimap { width: 7rem; }
+    .player-minimap-plan { height: 3.5rem; }
+    .player-map-backdrop { padding: .5rem; }
+    .player-map-dialog { max-height: calc(100dvh - 1rem); }
+    .player-map-content { padding: .4rem; }
+    .team-chat-toggle { gap: .4rem; padding: .75rem; font-size: .75rem; }
+}
+@media (prefers-reduced-motion: reduce) { .player-minimap { transition: none; } }

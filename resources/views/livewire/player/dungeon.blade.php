@@ -1,4 +1,4 @@
-<div wire:poll.3s class="space-y-6">
+<div wire:poll.3s class="space-y-6 pb-32">
     <header class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <p class="text-xs text-slate-400">Sala {{ $game->code }} · {{ $participant->team->name }}</p>
@@ -6,7 +6,6 @@
         </div>
         <div class="flex flex-wrap items-center gap-4 text-sm">
             <p aria-live="polite"><span class="font-semibold text-amber-200">{{ $score }} puntos</span><span class="ml-3 text-slate-400">{{ $solvedCount }} / {{ count($tiles) }} completadas</span></p>
-            <a href="#expedition-map" class="rounded-lg border border-slate-700 px-3 py-2 text-slate-200 hover:border-amber-300 focus-visible:outline-2 focus-visible:outline-amber-300">Ver mapa ↓</a>
         </div>
     </header>
 
@@ -57,18 +56,14 @@
             </div>
         @elseif ($nextPosition !== null)
             <h2 class="text-2xl font-bold text-amber-200">Habitación {{ $selectedPosition }} completada</h2>
-            <p class="mt-4 text-slate-300">Tu equipo ya ha descifrado este mensaje. Avanza por las salas abiertas del mapa hasta la habitación {{ $nextPosition }} para continuar.</p>
+            <p class="mt-4 text-slate-300">Tu equipo ya ha descifrado este mensaje. Abre el minimapa de la esquina y avanza por las salas abiertas hasta la habitación {{ $nextPosition }} para continuar.</p>
         @else
             <h2 class="text-2xl font-bold text-emerald-300">{{ $game->status === \App\Enums\GameStatus::Finished ? '¡Partida completada!' : '¡Habéis salido de la mazmorra!' }}</h2>
             <p class="mt-4 text-slate-300">{{ $game->status === \App\Enums\GameStatus::Finished ? 'La partida ha terminado. Ya puedes salir de la sala.' : 'Vuestro recorrido está completo. Puedes salir de la sala mientras los demás equipos continúan.' }}</p>
         @endif
     </section>
 
-    <div id="expedition-map" class="scroll-mt-6">
-        @error('movement')<p role="alert" class="mb-4 rounded-xl bg-red-950 p-4 text-red-200">{{ $message }}</p>@enderror
-        <x-dungeon-map :map="$map" title="Tu expedición" />
-        <a href="#current-challenge" class="mt-3 inline-block rounded py-1 text-sm text-slate-400 hover:text-amber-200">↑ Volver al acertijo</a>
-    </div>
+    <x-player-map :map="$map" />
 
     @if ($participant->team->finished_at || $game->status === \App\Enums\GameStatus::Finished)
         <section class="panel space-y-5">
