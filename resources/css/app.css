@@ -168,3 +168,12 @@
     .team-chat-toggle { gap: .4rem; padding: .75rem; font-size: .75rem; }
 }
 @media (prefers-reduced-motion: reduce) { .player-minimap { transition: none; } }
+
+
+.chat-emoji-anchor { position: relative; }
+.chat-emoji-popover { position: absolute; left: 0; bottom: calc(100% + .6rem); z-index: 10; width: min(19rem, calc(100vw - 4rem)); border: 1px solid #64748b; border-radius: .9rem; background: #1e293b; box-shadow: 0 8px 30px #0009; }
+.chat-emoji-popover::after { content: ''; position: absolute; bottom: -.35rem; left: .8rem; width: .6rem; height: .6rem; transform: rotate(45deg); border-right: 1px solid #64748b; border-bottom: 1px solid #64748b; background: #1e293b; }
+.chat-emoji-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .2rem; max-height: max(3rem, min(13rem, calc(100dvh - 22rem))); overflow-y: auto; overscroll-behavior: contain; padding: .4rem .6rem .6rem; scrollbar-color: #64748b #1e293b; scrollbar-width: thin; }
+.chat-emoji-option { display: inline-flex; align-items: center; justify-content: center; min-width: 0; height: 2.75rem; border-radius: .5rem; font-size: 1.4rem; }
+.chat-emoji-option:hover { background: #475569; }
+.chat-emoji-option:focus-visible, .chat-emoji-grid:focus-visible { outline: 2px solid #fcd34d; outline-offset: -2px; }

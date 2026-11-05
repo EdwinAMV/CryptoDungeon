@@ -19,7 +19,7 @@
         try { await this.$wire.send(); }
         finally { this.busy = false; }
     }
-}" @keydown.escape.window="if (open) { open = false; $refs.toggle.focus(); }">
+}" @keydown.escape.window="if (open) { if (emojisOpen) { emojisOpen = false; $refs.emojiToggle.focus(); } else { open = false; $refs.toggle.focus(); } }">
     @if ($participant)
         <section id="team-chat-panel" x-show="open" x-cloak x-transition.opacity class="team-chat-panel" aria-labelledby="team-chat-title">
             <header class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-700 px-5 py-4">
@@ -27,7 +27,7 @@
                     <h2 id="team-chat-title" class="truncate text-lg font-bold">Chat del equipo</h2>
                     <p class="truncate text-xs text-slate-400">{{ $participant->team->name }} · Supervisado por el anfitrión</p>
                 </div>
-                <button type="button" @click="open = false; $refs.toggle.focus()" class="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-amber-300" aria-label="Cerrar chat">✕</button>
+                <button type="button" @click="emojisOpen = false; open = false; $refs.toggle.focus()" class="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-amber-300" aria-label="Cerrar chat">✕</button>
             </header>
             <div class="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto p-4" tabindex="0" role="log" aria-label="Mensajes del equipo" aria-live="polite" aria-relevant="additions">
                 <ol class="space-y-4">
@@ -49,13 +49,21 @@
                 <label for="team-chat-message" class="flex items-center gap-2 text-xs text-slate-300"><span class="h-2.5 w-2.5 rounded-full" style="background: {{ $participant->displayColor() }}"></span>Tu mensaje al equipo</label>
                 <textarea id="team-chat-message" x-ref="composer" wire:model="message" :readonly="busy" @keydown.enter="if (!$event.shiftKey &amp;&amp; !$event.isComposing &amp;&amp; $event.keyCode !== 229) { $event.preventDefault(); if (!$event.repeat) sendMessage(); }" rows="2" maxlength="500" required class="field resize-none text-sm" placeholder="Escribe al equipo…"></textarea>
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <button type="button" @click="emojisOpen = !emojisOpen" :disabled="busy" :aria-expanded="emojisOpen" aria-controls="team-chat-emojis" aria-label="Elegir emoji" class="rounded-lg px-2 py-1 text-lg hover:bg-slate-800">☺</button>
+                    <div class="chat-emoji-anchor" @click.outside="emojisOpen = false">
+                        <button type="button" x-ref="emojiToggle" @click="emojisOpen = !emojisOpen" :disabled="busy" :aria-expanded="emojisOpen" aria-controls="team-chat-emojis" aria-label="Elegir emoji" class="rounded-lg px-2 py-1 text-lg hover:bg-slate-800">☺</button>
+                        <section id="team-chat-emojis" x-show="emojisOpen" x-cloak x-transition.opacity class="chat-emoji-popover" aria-label="Emojis disponibles">
+                            <header class="flex items-center justify-between gap-2 px-3 py-2">
+                                <h3 class="text-xs font-semibold text-slate-300">Elige un emoji</h3>
+                                <button type="button" @click="emojisOpen = false; $refs.emojiToggle.focus()" aria-label="Cerrar selector de emojis" class="rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-700 hover:text-white">✕</button>
+                            </header>
+                            <div class="chat-emoji-grid" tabindex="0" aria-label="Lista de emojis desplazable">
+                                @foreach ($emojis as $emoji => $label)
+                                    <button type="button" @click="addEmoji(@js($emoji))" :disabled="busy" aria-label="{{ $label }}" title="{{ $label }}" class="chat-emoji-option">{{ $emoji }}</button>
+                                @endforeach
+                            </div>
+                        </section>
+                    </div>
                     <span class="text-[10px] text-slate-500">Enter envía · Shift+Enter añade una línea</span>
-                </div>
-                <div id="team-chat-emojis" x-show="emojisOpen" x-cloak class="flex flex-wrap gap-1 rounded-lg bg-slate-800 p-2" aria-label="Emojis disponibles">
-                    @foreach ($emojis as $emoji => $label)
-                        <button type="button" @click="addEmoji(@js($emoji))" :disabled="busy" aria-label="{{ $label }}" class="rounded p-2 text-lg hover:bg-slate-700">{{ $emoji }}</button>
-                    @endforeach
                 </div>
                 @error('message')<p role="alert" class="text-xs text-red-300">{{ $message }}</p>@enderror
                 <div class="flex items-center justify-between gap-2">
@@ -64,7 +72,7 @@
                 </div>
             </form>
         </section>
-        <button type="button" x-ref="toggle" @click="open = !open; if (open) $nextTick(() => $refs.composer.focus())" :aria-expanded="open" aria-expanded="false" aria-controls="team-chat-panel" class="team-chat-toggle">
+        <button type="button" x-ref="toggle" @click="emojisOpen = false; open = !open; if (open) $nextTick(() => $refs.composer.focus())" :aria-expanded="open" aria-expanded="false" aria-controls="team-chat-panel" class="team-chat-toggle">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6" aria-hidden="true"><path stroke-linejoin="round" d="M20 11.5a8 8 0 0 1-8 8H5l-4 3v-11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8Z" transform="translate(1 -1)"/><path stroke-linecap="round" d="M7 9h8M7 13h5"/></svg>
             <span>Chat del equipo</span>
         </button>
