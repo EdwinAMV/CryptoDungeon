@@ -17,7 +17,7 @@ class ChatComposerTest extends TestCase
     {
         View::share('errors', new ViewErrorBag);
         $player = (new Participant)->forceFill(['id' => 1])->setRelation('team', (new Team)->forceFill(['name' => 'Azul']));
-        $html = view('livewire.player.team-chat', ['participant' => $player, 'messages' => collect(), 'cooldownUntil' => 0])->render();
+        $html = view('livewire.player.team-chat', ['participant' => $player, 'messages' => collect(), 'cooldownUntil' => 0, 'emojis' => ['💡' => 'Idea']])->render();
         $document = new DOMDocument;
         @$document->loadHTML($html);
         $expression = (new DOMXPath($document))->query('//*[@x-data]')->item(0)->getAttribute('x-data');
